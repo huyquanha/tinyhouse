@@ -1,7 +1,7 @@
 import { IResolvers } from 'apollo-server-express';
-import { Viewer, Database, User } from '../../../lib/types';
-import { Google } from '../../../lib/api';
-import { LogInArgs } from './types';
+import { Viewer, Database, User, UserInfo, Provider } from '../../../lib/types';
+import { Facebook, Google } from '../../../lib/api';
+import { AuthUrlArgs, LogInArgs } from './types';
 import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { COOKIE_NAME } from '../../../lib/constants';
@@ -13,44 +13,40 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === 'development' ? false : true, // HTTPS only, but not for development
 };
 
-const logInViaGoogle = async (
+const logInViaProvider = async (
+  provider: Provider,
   code: string,
   token: string,
   db: Database,
   res: Response
 ): Promise<User | undefined> => {
-  const { user } = await Google.logIn(code);
-
-  if (!user) {
-    throw new Error('Google login error');
+  let userInfo: UserInfo | null = null;
+  switch (provider) {
+    case Provider.GOOGLE:
+      userInfo = await Google.logIn(code);
+      break;
+    case Provider.FACEBOOK:
+      userInfo = await Facebook.login(code);
+      break;
+    default:
+      throw new Error(`Unsuporrted OAuth provider: ${provider}`);
   }
-  // Names/Photos/Email Lists
-  const userNamesList = user.names && user.names.length ? user.names : null;
-  const userPhotosList = user.photos && user.photos.length ? user.photos : null;
-  const userEmailsList =
-    user.emailAddresses && user.emailAddresses.length
-      ? user.emailAddresses
-      : null;
-  // User Display Name
-  const userName = userNamesList?.[0].displayName ?? null;
-  // User Id
-  const userId = userNamesList?.[0]?.metadata?.source?.id ?? null;
-  // User Avatar
-  const userAvatar = userPhotosList?.[0].url ?? null;
-  // User Email
-  const userEmail = userEmailsList?.[0].value ?? null;
-  if (!userId || !userName || !userAvatar || !userEmail) {
-    throw new Error('Google login error');
+  if (!userInfo) {
+    throw new Error(`${provider} login error`);
+  }
+  const { _id, name, avatar, contact } = userInfo;
+  if (!_id || !name || !avatar || !contact) {
+    throw new Error(`${provider} login error`);
   }
   const updateRes = await db.users.findOneAndUpdate(
     {
-      _id: userId,
+      _id,
     },
     {
       $set: {
-        name: userName,
-        avatar: userAvatar,
-        contact: userEmail,
+        name,
+        avatar,
+        contact,
         token,
       },
     },
@@ -60,18 +56,18 @@ const logInViaGoogle = async (
   // if the user doesn't exist yet, insert a new one
   if (!viewer) {
     const insertRes = await db.users.insertOne({
-      _id: userId,
+      _id,
       token,
-      name: userName,
-      avatar: userAvatar,
-      contact: userEmail,
+      name,
+      avatar,
+      contact,
       income: 0,
       bookings: [],
       listings: [],
     });
     viewer = insertRes.ops[0];
   }
-  res.cookie(COOKIE_NAME, userId, {
+  res.cookie(COOKIE_NAME, _id, {
     ...cookieOptions,
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   });
@@ -102,9 +98,16 @@ const logInViaCookie = async (
 
 export const viewerResolvers: IResolvers = {
   Query: {
-    authUrl: (): string => {
+    authUrl: (_root: undefined, { input }: AuthUrlArgs): string => {
       try {
-        return Google.authUrl;
+        switch (input.provider) {
+          case Provider.GOOGLE:
+            return Google.authUrl;
+          case Provider.FACEBOOK:
+            return Facebook.authUrl;
+          default:
+            throw new Error(`Unsupported OAuth provider: ${input.provider}`);
+        }
       } catch (err) {
         throw new Error(`Failed to query Google Auth Url: ${err}`);
       }
@@ -118,10 +121,12 @@ export const viewerResolvers: IResolvers = {
     ): Promise<Viewer> => {
       try {
         const code = input ? input.code : null;
+        const provider = input ? input.provider : null;
         const token = crypto.randomBytes(16).toString('hex');
-        const viewer = code
-          ? await logInViaGoogle(code, token, db, res)
-          : await logInViaCookie(token, db, req, res);
+        const viewer =
+          code && provider
+            ? await logInViaProvider(provider, code, token, db, res)
+            : await logInViaCookie(token, db, req, res);
         if (!viewer) {
           return { didRequest: true };
         }

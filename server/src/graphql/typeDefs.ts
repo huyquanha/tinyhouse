@@ -9,12 +9,22 @@ export const typeDefs = gql`
     didRequest: Boolean!
   }
 
+  enum Provider {
+    GOOGLE
+    FACEBOOK
+  }
+
   input LogInInput {
+    provider: Provider!
     code: String!
   }
 
+  input AuthUrlInput {
+    provider: Provider!
+  }
+
   type Query {
-    authUrl: String!
+    authUrl(input: AuthUrlInput!): String!
   }
 
   type Mutation {

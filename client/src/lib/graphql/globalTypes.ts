@@ -7,7 +7,17 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum Provider {
+  FACEBOOK = "FACEBOOK",
+  GOOGLE = "GOOGLE",
+}
+
+export interface AuthUrlInput {
+  provider: Provider;
+}
+
 export interface LogInInput {
+  provider: Provider;
   code: string;
 }
 

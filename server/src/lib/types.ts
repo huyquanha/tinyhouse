@@ -13,6 +13,11 @@ export enum ListingType {
   HOUSE = 'HOUSE',
 }
 
+export enum Provider {
+  GOOGLE = 'GOOGLE',
+  FACEBOOK = 'FACEBOOK',
+}
+
 export interface BookingsIndexMonth {
   [key: string]: boolean; // key will be the day of month. true if the date has been booked
 }
@@ -66,4 +71,11 @@ export interface Viewer {
   avatar?: string;
   walletId?: string;
   didRequest: boolean;
+}
+
+export interface UserInfo {
+  _id: string | null;
+  name: string | null;
+  avatar: string | null;
+  contact: string | null;
 }

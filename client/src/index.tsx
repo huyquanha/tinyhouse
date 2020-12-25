@@ -99,7 +99,7 @@ const App = () => {
           <Route exact path='/user/:id' component={User} />
           <Route
             exact
-            path='/login'
+            path={['/login', '/login/google', '/login/facebook']}
             render={(props) => <Login {...props} setViewer={setViewer} />}
           />
           <Route component={NotFound} />
