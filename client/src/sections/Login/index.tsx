@@ -1,10 +1,14 @@
 import { Card, Layout, Spin, Typography } from 'antd';
 import googleLogo from './assets/google_logo.jpg';
+import facebookLogo from './assets/facebook_logo.png';
 import { Viewer } from '../../lib/types';
 import { useApolloClient, useMutation } from '@apollo/client';
 import { AUTH_URL } from '../../lib/graphql/queries';
 import { LOG_IN } from '../../lib/graphql/mutations';
-import { AuthUrl as AuthUrlData } from '../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl';
+import {
+  AuthUrl as AuthUrlData,
+  AuthUrlVariables,
+} from '../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl';
 import {
   LogIn as LogInData,
   LogInVariables,
@@ -16,6 +20,7 @@ import {
   displayErrorMessage,
 } from '../../lib/utils';
 import { Redirect } from 'react-router-dom';
+import { Provider } from '../../lib/graphql/globalTypes';
 
 const { Content } = Layout;
 const { Text, Title } = Typography;
@@ -43,20 +48,41 @@ export const Login = ({ setViewer }: Props) => {
   const logInRef = useRef(logIn);
 
   useEffect(() => {
-    const code = new URL(window.location.href).searchParams.get('code');
-    if (code) {
+    const { pathname, searchParams } = new URL(window.location.href);
+    const providerName = pathname.split('/')[2]; // because pathname starts with "/", we need to access the 3rd element
+    let provider = null;
+    switch (providerName) {
+      case 'google':
+        provider = Provider.GOOGLE;
+        break;
+      case 'facebook':
+        provider = Provider.FACEBOOK;
+        break;
+      default:
+        break;
+    }
+    const code = searchParams.get('code');
+    if (provider && code) {
       logInRef.current({
         variables: {
-          input: { code },
+          input: { code, provider },
         },
       });
     }
   }, []);
 
-  const handleAuthorize = useCallback(async () => {
+  const handleAuthorize = useCallback(async (provider: Provider) => {
     try {
-      const { data } = await clientRef.current.query<AuthUrlData>({
+      const { data } = await clientRef.current.query<
+        AuthUrlData,
+        AuthUrlVariables
+      >({
         query: AUTH_URL,
+        variables: {
+          input: {
+            provider,
+          },
+        },
       });
       window.location.href = data.authUrl;
     } catch {
@@ -96,11 +122,11 @@ export const Login = ({ setViewer }: Props) => {
           <Title level={3} className='log-in-card__intro-title'>
             Log in to TinyHouse!
           </Title>
-          <Text>Sign in with Google to start booking available rentals!</Text>
+          <Text>Sign in to start booking available rentals!</Text>
         </div>
         <button
           className='log-in-card__google-button'
-          onClick={handleAuthorize}
+          onClick={() => handleAuthorize(Provider.GOOGLE)}
         >
           <img
             src={googleLogo}
@@ -111,9 +137,23 @@ export const Login = ({ setViewer }: Props) => {
             Sign in With Google
           </span>
         </button>
-        <Text type='secondary'>
-          Note: By signing in, you'll be redirected to the Google consent form
-          to sign in with your Google account.
+        <span>or</span>
+        <button
+          className='log-in-card__google-button'
+          onClick={() => handleAuthorize(Provider.FACEBOOK)}
+        >
+          <img
+            src={facebookLogo}
+            alt='Facebook Logo'
+            className='log-in-card__google-button-logo'
+          />
+          <span className='log-in-card__google-button-text'>
+            Sign in With Facebook
+          </span>
+        </button>
+        <Text type='secondary' className='log-in-card__note'>
+          Note: By signing in, you'll be redirected to the provider's consent
+          form to sign in with your account.
         </Text>
       </Card>
     </Content>
