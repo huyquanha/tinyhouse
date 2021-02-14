@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { UserInfo } from '../types';
+import { UserInfo } from './types';
 
 const auth = new google.auth.OAuth2(
   process.env.G_CLIENT_ID,
@@ -32,12 +32,11 @@ export const Google = {
       data.emailAddresses && data.emailAddresses.length
         ? data.emailAddresses
         : null;
-    const userId = userNamesList?.[0]?.metadata?.source?.id;
     return {
-      _id: userId ? `gg_${userId}` : null,
-      name: userNamesList?.[0].displayName ?? null,
-      avatar: userPhotosList?.[0].url ?? null,
-      contact: userEmailsList?.[0].value ?? null,
+      userId: userNamesList?.[0]?.metadata?.source?.id ?? undefined,
+      name: userNamesList?.[0].displayName ?? undefined,
+      avatar: userPhotosList?.[0].url ?? undefined,
+      contact: userEmailsList?.[0].value ?? undefined,
     };
   },
 };

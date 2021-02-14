@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Avatar, Button, Menu } from 'antd';
 import { HomeOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Viewer } from '../../../../lib/types';
+import { AuthAction, Viewer } from '../../../../lib/types';
 import { useMutation } from '@apollo/client';
 import { LOG_OUT } from '../../../../lib/graphql/mutations';
 import { LogOut as LogOutData } from '../../../../lib/graphql/mutations/LogOut/__generated__/LogOut';
@@ -49,12 +49,19 @@ export const MenuItems = ({ viewer, setViewer }: Props) => {
       </Item>
     </SubMenu>
   ) : (
-    <Item>
+    <Item key='/login'>
       <Link to='/login'>
-        <Button type='primary'>Sign In</Button>
+        <Button type='primary'>{AuthAction.LOG_IN}</Button>
       </Link>
     </Item>
   );
+  const signUpItem = !viewer.id ? (
+    <Item key='/signup'>
+      <Link to='/signup'>
+        <Button type='default'>{AuthAction.SIGN_UP}</Button>
+      </Link>
+    </Item>
+  ) : null;
   return (
     <Menu mode='horizontal' selectable={false} className='menu'>
       <Item key='/host'>
@@ -64,6 +71,7 @@ export const MenuItems = ({ viewer, setViewer }: Props) => {
         </Link>
       </Item>
       {subMenuLogin}
+      {signUpItem}
     </Menu>
   );
 };

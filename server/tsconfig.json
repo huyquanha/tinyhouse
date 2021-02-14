@@ -1,11 +1,10 @@
 {
+  "extends": "../tsconfig",
   "compilerOptions": {
     "target": "es6", // target javascript version the compiler will output
     "module": "commonjs", // module manager to be used in the compiled javascript output
     "rootDir": "./src", // all typescripts will be within this dir
-    "outDir": "./build",
-    "esModuleInterop": true, // help compile our CommonJS modules in compliance with ES6 modules
-    "strict": true // stric type checking
+    "outDir": "./build"
   },
   "exclude": ["temp"]
 }

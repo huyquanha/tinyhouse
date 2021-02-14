@@ -10,6 +10,8 @@ import {
   User,
   Login,
   AppHeader,
+  Signup,
+  VerifyEmail,
 } from './sections';
 import {
   ApolloClient,
@@ -27,6 +29,7 @@ import {
   LogInVariables,
 } from './lib/graphql/mutations/LogIn/__generated__/LogIn';
 import { AppHeaderSkeleton, ErrorBanner } from './lib/components';
+import { UserStatus } from './lib/graphql/globalTypes';
 
 const client = new ApolloClient({
   uri: '/api',
@@ -38,6 +41,8 @@ const client = new ApolloClient({
 
 const initialViewer: Viewer = {
   id: null,
+  status: null,
+  contact: null,
   token: null,
   avatar: null,
   hasWallet: null,
@@ -46,29 +51,68 @@ const initialViewer: Viewer = {
 
 const App = () => {
   const [viewer, setViewer] = useState<Viewer>(initialViewer);
-  const [logIn, { error }] = useMutation<LogInData, LogInVariables>(LOG_IN, {
-    onCompleted: (data) => {
-      if (data && data.logIn) {
-        setViewer(data.logIn);
-
-        if (data.logIn.token) {
-          sessionStorage.setItem('token', data.logIn.token);
-        } else {
-          // just to be safe
-          sessionStorage.removeItem('token');
+  const [logIn, { data, error }] = useMutation<LogInData, LogInVariables>(
+    LOG_IN,
+    {
+      onCompleted: (data) => {
+        if (data?.logIn.__typename === 'Viewer') {
+          setViewer(data.logIn);
+          if (
+            data.logIn.id &&
+            data.logIn.status === UserStatus.ACTIVE &&
+            data.logIn.token
+          ) {
+            sessionStorage.setItem('token', data.logIn.token);
+          } else {
+            // just to be safe
+            sessionStorage.removeItem('token');
+          }
         }
-      }
-    },
-    onError: (err) => console.error(err),
-  });
+      },
+      onError: (err) => console.error(err),
+    }
+  );
   const logInRef = useRef(logIn);
+  const setViewerRef = useRef(setViewer);
 
   useEffect(() => {
-    // we don't send any input here since this is logging in using cookie
-    logInRef.current();
+    const { searchParams, pathname } = new URL(window.location.href);
+    const token = searchParams.get('token');
+    if (pathname === '/verifyEmail' && token) {
+      // For a better UX, we don't want to show error
+      // for login failure when user is trying to verify their email. We will bypass it and let
+      // VerifyEmail handles user authentication instead
+      // Here we set didRequest to true to not get caught in an infinite loop in the loading check
+      setViewerRef.current({
+        ...initialViewer,
+        didRequest: true,
+      });
+    } else {
+      // we don't send any input here since this is logging in using cookie
+      logInRef.current();
+    }
   }, []);
 
-  if (!viewer.didRequest && !error) {
+  /**
+   * Notice that we don't check for if(loading) here because on the initial render,
+   * when the logIn Mutation is not called yet, loading will be false => the main <Router> will be
+   * mounted inside <App/> instead of the skeleton.
+   * When the logIn mutation is triggered by the useEffect() (effectively componentDidMount()),
+   * this skeleton will be rendered, causing a re-mount because the component type <Layout> is different
+   * from <Router>
+   * However, the important piece is that after the logIn mutation completes, we show the <Router> again instead
+   * of <Layout className='app-skeleton'> => another un-mount and re-mount happen inside <App/>. This can cause un-expected
+   * behavior in child route components which will be mounted twice together with the parent <Router>
+   *
+   * On the other hand, if the condition is if(!viewer.didRequest && !error), which is true even before the logIn
+   * mutation happening, the skeleton will be mounted first, and once the mutation completes the main <Router>
+   * is then mounted => the <Router> is only mounted once and so do the child components in Routes.
+   */
+  if (
+    !viewer.didRequest &&
+    !error &&
+    !data?.logIn.__typename.endsWith('Error')
+  ) {
     return (
       <Layout className='app-skeleton'>
         <AppHeaderSkeleton />
@@ -79,9 +123,10 @@ const App = () => {
     );
   }
 
-  const logInErrorBannerElement = error ? (
-    <ErrorBanner description="We weren't able to verify if you were logged in. Please try again later!" />
-  ) : null;
+  const logInErrorBannerElement =
+    error || data?.logIn.__typename.endsWith('Error') ? (
+      <ErrorBanner description="We weren't able to verify if you were logged in. Please try again later!" />
+    ) : null;
 
   return (
     <Router>
@@ -91,16 +136,34 @@ const App = () => {
           <AppHeader viewer={viewer} setViewer={setViewer} />
         </Affix>
         <Switch>
-          <Route exact path='/' component={Home} />
-          <Route exact path='/host' component={Host} />
-          <Route exact path='/listing/:id' component={Listing} />
+          <Route exact path='/'>
+            <Home />
+          </Route>
+          <Route exact path='/host'>
+            <Host />
+          </Route>
+          <Route exact path='/listing/:id'>
+            <Listing />
+          </Route>
           {/** :location? means location parameter is optional */}
-          <Route exact path='/listings/:location?' component={Listings} />
-          <Route exact path='/user/:id' component={User} />
+          <Route exact path='/listings/:location?'>
+            <Listings />
+          </Route>
+          <Route exact path='/user/:id'>
+            <User />
+          </Route>
           <Route
             exact
             path={['/login', '/login/google', '/login/facebook']}
             render={(props) => <Login {...props} setViewer={setViewer} />}
+          />
+          <Route exact path='/signup' component={Signup} />
+          <Route
+            exact
+            path='/verifyEmail'
+            render={(props) => (
+              <VerifyEmail {...(props as any)} setViewer={setViewer} />
+            )}
           />
           <Route component={NotFound} />
         </Switch>

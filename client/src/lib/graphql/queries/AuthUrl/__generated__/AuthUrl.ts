@@ -3,7 +3,7 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { AuthUrlInput } from "./../../../globalTypes";
+import { Provider } from "./../../../globalTypes";
 
 // ====================================================
 // GraphQL query operation: AuthUrl
@@ -14,5 +14,5 @@ export interface AuthUrl {
 }
 
 export interface AuthUrlVariables {
-  input: AuthUrlInput;
+  provider: Provider;
 }
