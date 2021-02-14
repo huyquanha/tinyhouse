@@ -488,7 +488,7 @@
   justify-content: center;
 }
 .log-in-card {
-  width: 450px;
+  width: 400px;
   text-align: center;
   padding: 10px 0 20px;
 }
@@ -499,8 +499,8 @@
 .log-in-card__intro-title.ant-typography + h3.ant-typography {
   margin-top: 5px;
 }
-.log-in-card__google-button {
-  margin: 10px auto;
+.log-in-card__provider-button {
+  margin: 20px auto;
   border-radius: 2px;
   background-color: rgba(64, 87, 109, 0.07);
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.24), 0 0 1px 0 rgba(0, 0, 0, 0.12);
@@ -510,22 +510,21 @@
   padding: 1px;
   color: #0e1318;
   cursor: pointer;
-  width: 200px;
 }
-.log-in-card__google-button:hover {
+.log-in-card__provider-button:hover {
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.24), 0 0 2px 0 rgba(0, 0, 0, 0.12);
 }
-.log-in-card__google-button:active {
+.log-in-card__provider-button:active {
   background: #3367d6;
 }
-.log-in-card__google-button-logo {
-  height: 43px;
-  width: 43px;
+.log-in-card__provider-button-logo {
+  height: 40px;
+  width: 40px;
 }
-.log-in-card__google-button-text {
-  text-align: left;
+.log-in-card__provider-button-text {
   white-space: nowrap;
-  padding: 10px;
+  /* padding: 10px; */
+  margin: auto;
 }
 .log-in-card__note {
   display: inline-block;

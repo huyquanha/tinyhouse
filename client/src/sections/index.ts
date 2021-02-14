@@ -6,3 +6,5 @@ export * from './User';
 export * from './NotFound';
 export * from './Login';
 export * from './AppHeader';
+export * from './Signup';
+export * from './VerifyEmail';

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UserInfo } from '../types';
+import { UserInfo } from './types';
 
 const GRAPH_BASE_URL = 'https://graph.facebook.com/v9.0';
 
@@ -19,12 +19,11 @@ export const Facebook = {
     if (!data) {
       return null;
     }
-    const userId = data.id;
     return {
-      _id: userId ? `fb_${userId}` : null,
-      name: data.name ?? null,
-      avatar: data.picture?.data?.url ?? null,
-      contact: data.email ?? null,
+      userId: data.id ?? undefined,
+      name: data.name ?? undefined,
+      avatar: data.picture?.data?.url ?? undefined,
+      contact: data.email ?? undefined,
     };
   },
 };

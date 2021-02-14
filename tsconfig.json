@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true, // help compile our CommonJS modules in compliance with ES6 modules
+    "strict": true, // stric type checking
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+  }
+}

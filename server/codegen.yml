@@ -1,0 +1,17 @@
+schema: './src/graphql/typeDefs.ts'
+generates:
+  ./src/lib/types.ts:
+    plugins:
+      - typescript:
+          enumValues:
+            UserStatus: ./constants#UserStatus
+            ListingType: ./constants#ListingType
+            Provider: ./constants#Provider
+      - typescript-mongodb:
+          dbTypeSuffix: Document
+          enumsAsString: false
+    config:
+      scalars:
+        Date: Date
+        DateTime: Date
+      immutableTypes: true

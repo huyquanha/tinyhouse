@@ -12,13 +12,23 @@ export enum Provider {
   GOOGLE = "GOOGLE",
 }
 
-export interface AuthUrlInput {
-  provider: Provider;
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  PENDING = "PENDING",
 }
 
 export interface LogInInput {
-  provider: Provider;
-  code: string;
+  provider?: Provider | null;
+  code?: string | null;
+  email?: string | null;
+  password?: string | null;
+}
+
+export interface SignUpInput {
+  name: string;
+  avatar?: string | null;
+  email: string;
+  password: string;
 }
 
 //==============================================================
