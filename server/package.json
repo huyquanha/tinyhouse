@@ -31,6 +31,7 @@
     "eslint": "^7.14.0",
     "mocha": "^8.2.1",
     "nodemon": "^2.0.6",
+    "prettier": "2.2.1",
     "ts-node": "^9.0.0"
   },
   "scripts": {
@@ -39,6 +40,8 @@
     "build": "tsc -p ./",
     "seed": "ts-node temp/seed.ts",
     "clear": "ts-node temp/clear.ts",
-    "generate": "npx gql-gen --config codegen.yml"
+    "generate": "npx gql-gen --config codegen.yml",
+    "format": "npx prettier --write .",
+    "check": "npx prettier --check ."
   }
 }
