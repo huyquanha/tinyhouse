@@ -67,6 +67,7 @@ export const viewerResolvers: IResolvers = {
         };
       }
       const userOrError = await signUp(db, name, email, password, avatar);
+      console.log(userOrError);
       // because the user does not verify email yet, we don't add cookie and only return email
       if (isUserDocument(userOrError)) {
         return {
