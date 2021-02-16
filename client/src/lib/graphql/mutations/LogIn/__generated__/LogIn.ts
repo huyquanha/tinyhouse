@@ -36,7 +36,10 @@ export interface LogIn_logIn_AuthenticationError {
   message: string;
 }
 
-export type LogIn_logIn = LogIn_logIn_Viewer | LogIn_logIn_UserInputErrors | LogIn_logIn_AuthenticationError;
+export type LogIn_logIn =
+  | LogIn_logIn_Viewer
+  | LogIn_logIn_UserInputErrors
+  | LogIn_logIn_AuthenticationError;
 
 export interface LogIn {
   logIn: LogIn_logIn;

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { render } from 'react-dom';
-import reportWebVitals from './reportWebVitals';
+import React, { useEffect, useRef, useState } from "react";
+import { render } from "react-dom";
+import reportWebVitals from "./reportWebVitals";
 import {
   Home,
   Host,
@@ -12,30 +12,30 @@ import {
   AppHeader,
   Signup,
   VerifyEmail,
-} from './sections';
+} from "./sections";
 import {
   ApolloClient,
   ApolloProvider,
   InMemoryCache,
   useMutation,
-} from '@apollo/client';
-import './styles/index.css';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Layout, Affix, Spin } from 'antd';
-import { Viewer } from './lib/types';
-import { LOG_IN } from './lib/graphql/mutations';
+} from "@apollo/client";
+import "./styles/index.css";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { Layout, Affix, Spin } from "antd";
+import { Viewer } from "./lib/types";
+import { LOG_IN } from "./lib/graphql/mutations";
 import {
   LogIn as LogInData,
   LogInVariables,
-} from './lib/graphql/mutations/LogIn/__generated__/LogIn';
-import { AppHeaderSkeleton, ErrorBanner } from './lib/components';
-import { UserStatus } from './lib/graphql/globalTypes';
+} from "./lib/graphql/mutations/LogIn/__generated__/LogIn";
+import { AppHeaderSkeleton, ErrorBanner } from "./lib/components";
+import { UserStatus } from "./lib/graphql/globalTypes";
 
 const client = new ApolloClient({
-  uri: '/api',
+  uri: "/api",
   cache: new InMemoryCache(),
   headers: {
-    'X-CSRF-TOKEN': sessionStorage.getItem('token') ?? '',
+    "X-CSRF-TOKEN": sessionStorage.getItem("token") ?? "",
   },
 });
 
@@ -55,17 +55,17 @@ const App = () => {
     LOG_IN,
     {
       onCompleted: (data) => {
-        if (data?.logIn.__typename === 'Viewer') {
+        if (data?.logIn.__typename === "Viewer") {
           setViewer(data.logIn);
           if (
             data.logIn.id &&
             data.logIn.status === UserStatus.ACTIVE &&
             data.logIn.token
           ) {
-            sessionStorage.setItem('token', data.logIn.token);
+            sessionStorage.setItem("token", data.logIn.token);
           } else {
             // just to be safe
-            sessionStorage.removeItem('token');
+            sessionStorage.removeItem("token");
           }
         }
       },
@@ -77,8 +77,8 @@ const App = () => {
 
   useEffect(() => {
     const { searchParams, pathname } = new URL(window.location.href);
-    const token = searchParams.get('token');
-    if (pathname === '/verifyEmail' && token) {
+    const token = searchParams.get("token");
+    if (pathname === "/verifyEmail" && token) {
       // For a better UX, we don't want to show error
       // for login failure when user is trying to verify their email. We will bypass it and let
       // VerifyEmail handles user authentication instead
@@ -111,56 +111,56 @@ const App = () => {
   if (
     !viewer.didRequest &&
     !error &&
-    !data?.logIn.__typename.endsWith('Error')
+    !data?.logIn.__typename.endsWith("Error")
   ) {
     return (
-      <Layout className='app-skeleton'>
+      <Layout className="app-skeleton">
         <AppHeaderSkeleton />
-        <div className='app-skeleton__spin-section'>
-          <Spin size='large' tip='Launching Tinyhouse' />
+        <div className="app-skeleton__spin-section">
+          <Spin size="large" tip="Launching Tinyhouse" />
         </div>
       </Layout>
     );
   }
 
   const logInErrorBannerElement =
-    error || data?.logIn.__typename.endsWith('Error') ? (
+    error || data?.logIn.__typename.endsWith("Error") ? (
       <ErrorBanner description="We weren't able to verify if you were logged in. Please try again later!" />
     ) : null;
 
   return (
     <Router>
-      <Layout id='app'>
+      <Layout id="app">
         {logInErrorBannerElement}
-        <Affix offsetTop={0} className='app__affix-header'>
+        <Affix offsetTop={0} className="app__affix-header">
           <AppHeader viewer={viewer} setViewer={setViewer} />
         </Affix>
         <Switch>
-          <Route exact path='/'>
+          <Route exact path="/">
             <Home />
           </Route>
-          <Route exact path='/host'>
+          <Route exact path="/host">
             <Host />
           </Route>
-          <Route exact path='/listing/:id'>
+          <Route exact path="/listing/:id">
             <Listing />
           </Route>
           {/** :location? means location parameter is optional */}
-          <Route exact path='/listings/:location?'>
+          <Route exact path="/listings/:location?">
             <Listings />
           </Route>
-          <Route exact path='/user/:id'>
+          <Route exact path="/user/:id">
             <User />
           </Route>
           <Route
             exact
-            path={['/login', '/login/google', '/login/facebook']}
+            path={["/login", "/login/google", "/login/facebook"]}
             render={(props) => <Login {...props} setViewer={setViewer} />}
           />
-          <Route exact path='/signup' component={Signup} />
+          <Route exact path="/signup" component={Signup} />
           <Route
             exact
-            path='/verifyEmail'
+            path="/verifyEmail"
             render={(props) => (
               <VerifyEmail {...(props as any)} setViewer={setViewer} />
             )}
@@ -178,7 +178,7 @@ render(
       <App />
     </ApolloProvider>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );
 
 // If you want to start measuring performance in your app, pass a function

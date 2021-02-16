@@ -15,6 +15,7 @@
     "@types/react-router-dom": "^5.1.6",
     "antd": "^4.9.2",
     "formik": "^2.2.6",
+    "graphql": "^15.5.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
@@ -27,6 +28,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "lint": "npx eslint \"**/*.tsx\"",
     "codegen:schema": "npx apollo client:download-schema --endpoint=http://localhost:9000/api",
     "codegen:generate": "npx apollo client:codegen --localSchemaFile=schema.json --includes=src/**/*.ts --globalTypesFile=./src/lib/graphql/globalTypes.ts --target=typescript"
   },

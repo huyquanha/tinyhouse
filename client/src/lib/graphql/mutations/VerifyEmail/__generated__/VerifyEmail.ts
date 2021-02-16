@@ -25,7 +25,9 @@ export interface VerifyEmail_verifyEmail_DatabaseError {
   message: string;
 }
 
-export type VerifyEmail_verifyEmail = VerifyEmail_verifyEmail_Viewer | VerifyEmail_verifyEmail_DatabaseError;
+export type VerifyEmail_verifyEmail =
+  | VerifyEmail_verifyEmail_Viewer
+  | VerifyEmail_verifyEmail_DatabaseError;
 
 export interface VerifyEmail {
   verifyEmail: VerifyEmail_verifyEmail;

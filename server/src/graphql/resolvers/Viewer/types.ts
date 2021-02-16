@@ -1,4 +1,4 @@
-import { Provider } from '../../../lib/types';
+import { Provider } from "../../../lib/types";
 
 export interface SignUpArgs {
   input: {

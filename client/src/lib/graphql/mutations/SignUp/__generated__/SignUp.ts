@@ -31,7 +31,10 @@ export interface SignUp_signUp_DatabaseError {
   message: string;
 }
 
-export type SignUp_signUp = SignUp_signUp_Viewer | SignUp_signUp_UserInputErrors | SignUp_signUp_DatabaseError;
+export type SignUp_signUp =
+  | SignUp_signUp_Viewer
+  | SignUp_signUp_UserInputErrors
+  | SignUp_signUp_DatabaseError;
 
 export interface SignUp {
   signUp: SignUp_signUp;

@@ -1,5 +1,5 @@
-import { EmailVerificationDocument, UserDocument } from '../../types';
-import { IEmail } from '../types';
+import { EmailVerificationDocument, UserDocument } from "../../types";
+import { IEmail } from "../types";
 
 export const createVerificationEmail = (
   user: UserDocument,
@@ -7,7 +7,7 @@ export const createVerificationEmail = (
 ): IEmail => {
   return {
     to: user.contact,
-    subject: 'Welcome to Tinyhouse!',
+    subject: "Welcome to Tinyhouse!",
     html: `
       <html>
         <body>

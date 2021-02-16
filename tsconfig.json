@@ -4,6 +4,6 @@
     "strict": true, // stric type checking
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": true
   }
 }

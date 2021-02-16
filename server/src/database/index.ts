@@ -1,11 +1,17 @@
-import { Collection, MongoClient } from 'mongodb';
-import { BookingDocument, EmailVerificationDocument, ListingDocument, UserDocument, UserIdentityDocument } from '../lib/types';
+import { Collection, MongoClient } from "mongodb";
+import {
+  BookingDocument,
+  EmailVerificationDocument,
+  ListingDocument,
+  UserDocument,
+  UserIdentityDocument,
+} from "../lib/types";
 // import { Database } from '../lib/types';
-import { getBookingsCollection } from './Booking';
-import { getEmailVerificationsCollection } from './EmailVerification';
-import { getListingsCollection } from './Listing';
-import { getUsersCollection } from './User';
-import { getUserIdentitiesCollection } from './UserIdentity';
+import { getBookingsCollection } from "./Booking";
+import { getEmailVerificationsCollection } from "./EmailVerification";
+import { getListingsCollection } from "./Listing";
+import { getUsersCollection } from "./User";
+import { getUserIdentitiesCollection } from "./UserIdentity";
 
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_USER_PASSWORD}@${process.env.DB_CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 

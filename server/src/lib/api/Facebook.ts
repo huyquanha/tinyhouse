@@ -1,7 +1,7 @@
-import axios from 'axios';
-import { UserInfo } from './types';
+import axios from "axios";
+import { UserInfo } from "./types";
 
-const GRAPH_BASE_URL = 'https://graph.facebook.com/v9.0';
+const GRAPH_BASE_URL = "https://graph.facebook.com/v9.0";
 
 export const Facebook = {
   authUrl: `https://www.facebook.com/v9.0/dialog/oauth?client_id=${process.env.FB_CLIENT_ID}&redirect_uri=${process.env.PUBLIC_URL}/login/facebook&state=${process.env.FB_STATE}&scope=email`,
@@ -12,7 +12,7 @@ export const Facebook = {
     const { access_token } = res.data;
     const { data } = await axios.get(`${GRAPH_BASE_URL}/me`, {
       params: {
-        fields: 'id,name,email,picture',
+        fields: "id,name,email,picture",
         access_token,
       },
     });

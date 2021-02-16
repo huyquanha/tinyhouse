@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
-import { UserInfo } from './types';
+import { google } from "googleapis";
+import { UserInfo } from "./types";
 
 const auth = new google.auth.OAuth2(
   process.env.G_CLIENT_ID,
@@ -9,18 +9,18 @@ const auth = new google.auth.OAuth2(
 
 export const Google = {
   authUrl: auth.generateAuthUrl({
-    access_type: 'online',
+    access_type: "online",
     scope: [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
     ],
   }),
   logIn: async (code: string): Promise<UserInfo | null> => {
     const { tokens } = await auth.getToken(code);
     auth.setCredentials(tokens);
-    const { data } = await google.people({ version: 'v1', auth }).people.get({
-      resourceName: 'people/me',
-      personFields: 'emailAddresses,names,photos',
+    const { data } = await google.people({ version: "v1", auth }).people.get({
+      resourceName: "people/me",
+      personFields: "emailAddresses,names,photos",
     });
     if (!data) {
       return null;

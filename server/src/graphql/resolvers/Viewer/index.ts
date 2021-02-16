@@ -1,4 +1,4 @@
-import { ApolloError, IResolvers } from 'apollo-server-express';
+import { ApolloError, IResolvers } from "apollo-server-express";
 import {
   Viewer,
   Provider,
@@ -12,16 +12,16 @@ import {
   ResendVerificationEmailResult,
   VerifyEmailResult,
   LogInResult,
-} from '../../../lib/types';
-import { Database } from '../../../database';
-import { Facebook, Google } from '../../../lib/api';
-import { AuthUrlArgs, LogInArgs, SignUpArgs, VerifyEmailArgs } from './types';
-import crypto from 'crypto';
-import { Request, Response } from 'express';
-import { VIEWER_COOKIE } from './cookieOptions';
-import { sendVerificationEmail, signUp, verifyEmail } from './signUp';
-import { logInViaCookie, logInViaEmail, logInViaProvider } from './logIn';
-import { cookieOptions } from './cookieOptions';
+} from "../../../lib/types";
+import { Database } from "../../../database";
+import { Facebook, Google } from "../../../lib/api";
+import { AuthUrlArgs, LogInArgs, SignUpArgs, VerifyEmailArgs } from "./types";
+import crypto from "crypto";
+import { Request, Response } from "express";
+import { VIEWER_COOKIE } from "./cookieOptions";
+import { sendVerificationEmail, signUp, verifyEmail } from "./signUp";
+import { logInViaCookie, logInViaEmail, logInViaProvider } from "./logIn";
+import { cookieOptions } from "./cookieOptions";
 
 const isUserDocument = (
   user: UserDocument | UserInputErrors | DatabaseError | AuthenticationError
@@ -50,7 +50,7 @@ export const viewerResolvers: IResolvers = {
       const inputErrors = Object.keys(input)
         .map((k) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if (k !== 'avatar' && !(input as any)[k]) {
+          if (k !== "avatar" && !(input as any)[k]) {
             return {
               message: `${
                 k.charAt(0).toLocaleUpperCase() + k.slice(1)
@@ -62,7 +62,7 @@ export const viewerResolvers: IResolvers = {
         .filter((e) => e);
       if (inputErrors.length > 0) {
         return {
-          __typename: 'UserInputErrors',
+          __typename: "UserInputErrors",
           errors: inputErrors as UserInputError[],
         };
       }
@@ -70,7 +70,7 @@ export const viewerResolvers: IResolvers = {
       // because the user does not verify email yet, we don't add cookie and only return email
       if (isUserDocument(userOrError)) {
         return {
-          __typename: 'Viewer',
+          __typename: "Viewer",
           contact: userOrError.contact,
           didRequest: true,
         };
@@ -89,8 +89,8 @@ export const viewerResolvers: IResolvers = {
       });
       if (!viewer) {
         return {
-          __typename: 'DatabaseError',
-          message: 'User not found',
+          __typename: "DatabaseError",
+          message: "User not found",
         };
       }
       return sendVerificationEmail(db, viewer);
@@ -103,7 +103,7 @@ export const viewerResolvers: IResolvers = {
       const userOrError = await verifyEmail(db, token, res);
       if (isUserDocument(userOrError)) {
         return {
-          __typename: 'Viewer',
+          __typename: "Viewer",
           id: userOrError._id.toHexString(),
           status: userOrError.status,
           contact: userOrError.contact,
@@ -122,7 +122,7 @@ export const viewerResolvers: IResolvers = {
       { input }: LogInArgs,
       { db, req, res }: { db: Database; req: Request; res: Response }
     ): Promise<LogInResult> => {
-      const token = crypto.randomBytes(16).toString('hex');
+      const token = crypto.randomBytes(16).toString("hex");
       let userOrError:
         | UserDocument
         | UserInputErrors
@@ -147,7 +147,7 @@ export const viewerResolvers: IResolvers = {
       }
       if (isUserDocument(userOrError)) {
         return {
-          __typename: 'Viewer',
+          __typename: "Viewer",
           id: userOrError._id.toHexString(),
           status: userOrError.status,
           contact: userOrError.contact,
@@ -168,7 +168,7 @@ export const viewerResolvers: IResolvers = {
       // most browsers will only clear the cookie if the options are identical to when
       // the cookie is set (except expires or maxAge property)
       res.clearCookie(VIEWER_COOKIE, cookieOptions);
-      return { __typename: 'Viewer', didRequest: true };
+      return { __typename: "Viewer", didRequest: true };
     },
   },
   UserStatus: {

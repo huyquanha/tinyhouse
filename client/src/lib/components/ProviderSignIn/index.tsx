@@ -1,16 +1,16 @@
-import { Provider } from '../../graphql/globalTypes';
-import { Card, Typography, Button, Divider } from 'antd';
-import googleLogo from './assets/google_logo.jpg';
-import facebookLogo from './assets/facebook_logo.png';
-import { AuthAction } from '../../types';
-import { useApolloClient } from '@apollo/client';
-import { PropsWithChildren, useCallback, useRef } from 'react';
+import { Provider } from "../../graphql/globalTypes";
+import { Card, Typography, Button, Divider } from "antd";
+import googleLogo from "./assets/google_logo.jpg";
+import facebookLogo from "./assets/facebook_logo.png";
+import { AuthAction } from "../../types";
+import { useApolloClient } from "@apollo/client";
+import { PropsWithChildren, useCallback, useRef } from "react";
 import {
   AuthUrl as AuthUrlData,
   AuthUrlVariables,
-} from '../../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl';
-import { AUTH_URL } from '../../graphql/queries';
-import { displayErrorMessage } from '../../../lib/utils';
+} from "../../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl";
+import { AUTH_URL } from "../../graphql/queries";
+import { displayErrorMessage } from "../../../lib/utils";
 
 const { Text, Title } = Typography;
 
@@ -48,47 +48,47 @@ export const ProviderSignIn = ({
   );
 
   return (
-    <Card className='log-in-card'>
-      <div className='log-in-card__intro'>
-        <Title level={3} className='log-in-card__intro-title'>
-          <span role='img' aria-label='wave'>
+    <Card className="log-in-card">
+      <div className="log-in-card__intro">
+        <Title level={3} className="log-in-card__intro-title">
+          <span role="img" aria-label="wave">
             👋
           </span>
         </Title>
-        <Title level={3} className='log-in-card__intro-title'>
+        <Title level={3} className="log-in-card__intro-title">
           {`${action} to TinyHouse!`}
         </Title>
         <Text>{`${action} to start booking available rentals!`}</Text>
       </div>
       <Button
-        className='log-in-card__provider-button'
-        type='primary'
+        className="log-in-card__provider-button"
+        type="primary"
         block
-        size='large'
+        size="large"
         onClick={() => handleAuthorize(Provider.GOOGLE)}
       >
         <img
           src={googleLogo}
-          alt='Google Logo'
-          className='log-in-card__provider-button-logo'
+          alt="Google Logo"
+          className="log-in-card__provider-button-logo"
         />
-        <span className='log-in-card__provider-button-text'>
+        <span className="log-in-card__provider-button-text">
           {`${action} with Google`}
         </span>
       </Button>
       <Button
-        className='log-in-card__provider-button'
-        type='primary'
+        className="log-in-card__provider-button"
+        type="primary"
         block
-        size='large'
+        size="large"
         onClick={() => handleAuthorize(Provider.FACEBOOK)}
       >
         <img
           src={facebookLogo}
-          alt='Facebook Logo'
-          className='log-in-card__provider-button-logo'
+          alt="Facebook Logo"
+          className="log-in-card__provider-button-logo"
         />
-        <span className='log-in-card__provider-button-text'>
+        <span className="log-in-card__provider-button-text">
           {`${action} with Facebook`}
         </span>
       </Button>

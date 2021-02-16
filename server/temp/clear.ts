@@ -1,11 +1,11 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config();
 
-import { connectDatabase } from '../src/database';
+import { connectDatabase } from "../src/database";
 
 const clear = async () => {
   try {
-    console.log('[clear]: running...');
+    console.log("[clear]: running...");
 
     const db = await connectDatabase();
 
@@ -35,10 +35,10 @@ const clear = async () => {
       await db.emailVerifications.drop();
     }
 
-    console.log('[clear]: success');
+    console.log("[clear]: success");
     process.exit();
   } catch {
-    throw new Error('Failed to clear database');
+    throw new Error("Failed to clear database");
   }
 };
 

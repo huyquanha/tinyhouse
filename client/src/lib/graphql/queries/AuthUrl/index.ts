@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 // We have to use $provider because it will affect the generated attribute name
 // in AuthUrlVariables. If we name it $input, the generated attribute will be "input"

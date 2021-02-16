@@ -1,4 +1,4 @@
-import { UserStatus } from './graphql/globalTypes';
+import { UserStatus } from "./graphql/globalTypes";
 
 export interface Viewer {
   id: string | null;
@@ -11,6 +11,6 @@ export interface Viewer {
 }
 
 export enum AuthAction {
-  LOG_IN = 'Log in',
-  SIGN_UP = 'Sign up',
+  LOG_IN = "Log in",
+  SIGN_UP = "Sign up",
 }
