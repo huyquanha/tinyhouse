@@ -4,21 +4,36 @@
   "devDependencies": {
     "@types/node": "^14.14.25",
     "cz-conventional-changelog": "^3.3.0",
+    "husky": "^5.0.9",
+    "lint-staged": "^10.5.4",
+    "prettier": "2.2.1",
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "commit": "cz",
     "postinstall": "npm install --prefix server && npm install --prefix client",
     "build": "npm run build --prefix server && npm run build --prefix client",
     "start": "npm start --prefix server",
-    "dev": "npm run dev --prefix server && npm start --prefix client"
+    "dev": "npm run dev --prefix server && npm start --prefix client",
+    "format": "npx prettier --write .",
+    "lint": "npm run lint --prefix server ; npm run lint --prefix client",
+    "cm": "cz"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "dependencies": {
-    "graphql": "^15.5.0"
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --ext .js,.ts,.tsx,.jsx --cache --fix",
+      "prettier --write"
+    ],
+    "*.{js,css,md}": "prettier --write"
   }
 }

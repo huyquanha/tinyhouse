@@ -1,10 +1,12 @@
-import { Db } from 'mongodb';
-import { EmailVerificationDocument } from '../lib/types';
+import { Collection, Db } from "mongodb";
+import { EmailVerificationDocument } from "../lib/types";
 
-export const getEmailVerificationsCollection = async (db: Db) => {
+export const getEmailVerificationsCollection = async (
+  db: Db
+): Promise<Collection<EmailVerificationDocument>> => {
   // create index on user's email
   const emailVerificationsCol = db.collection<EmailVerificationDocument>(
-    'emailVerifications'
+    "emailVerifications"
   );
   await emailVerificationsCol.createIndexes([
     {

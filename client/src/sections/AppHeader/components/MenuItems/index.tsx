@@ -1,15 +1,15 @@
-import { Link } from 'react-router-dom';
-import { Avatar, Button, Menu } from 'antd';
-import { HomeOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { AuthAction, Viewer } from '../../../../lib/types';
-import { useMutation } from '@apollo/client';
-import { LOG_OUT } from '../../../../lib/graphql/mutations';
-import { LogOut as LogOutData } from '../../../../lib/graphql/mutations/LogOut/__generated__/LogOut';
+import { Link } from "react-router-dom";
+import { Avatar, Button, Menu } from "antd";
+import { HomeOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import { AuthAction, Viewer } from "../../../../lib/types";
+import { useMutation } from "@apollo/client";
+import { LOG_OUT } from "../../../../lib/graphql/mutations";
+import { LogOut as LogOutData } from "../../../../lib/graphql/mutations/LogOut/__generated__/LogOut";
 import {
   displaySuccessNotification,
   displayErrorMessage,
-} from '../../../../lib/utils';
-import { useCallback, useRef } from 'react';
+} from "../../../../lib/utils";
+import { useCallback, useRef } from "react";
 
 const { Item, SubMenu } = Menu;
 
@@ -23,7 +23,7 @@ export const MenuItems = ({ viewer, setViewer }: Props) => {
     onCompleted: (data) => {
       if (data && data.logOut) {
         setViewer(data.logOut);
-        sessionStorage.removeItem('token');
+        sessionStorage.removeItem("token");
         displaySuccessNotification(`You've successfully logged out!`);
       }
     },
@@ -37,11 +37,11 @@ export const MenuItems = ({ viewer, setViewer }: Props) => {
 
   const subMenuLogin = viewer.id ? (
     <SubMenu title={<Avatar src={viewer.avatar} />}>
-      <Item key='/user'>
+      <Item key="/user">
         <UserOutlined />
         Profile
       </Item>
-      <Item key='/logout'>
+      <Item key="/logout">
         <div onClick={handleLogOut}>
           <LogoutOutlined />
           Log out
@@ -49,23 +49,23 @@ export const MenuItems = ({ viewer, setViewer }: Props) => {
       </Item>
     </SubMenu>
   ) : (
-    <Item key='/login'>
-      <Link to='/login'>
-        <Button type='primary'>{AuthAction.LOG_IN}</Button>
+    <Item key="/login">
+      <Link to="/login">
+        <Button type="primary">{AuthAction.LOG_IN}</Button>
       </Link>
     </Item>
   );
   const signUpItem = !viewer.id ? (
-    <Item key='/signup'>
-      <Link to='/signup'>
-        <Button type='default'>{AuthAction.SIGN_UP}</Button>
+    <Item key="/signup">
+      <Link to="/signup">
+        <Button type="default">{AuthAction.SIGN_UP}</Button>
       </Link>
     </Item>
   ) : null;
   return (
-    <Menu mode='horizontal' selectable={false} className='menu'>
-      <Item key='/host'>
-        <Link to='/host'>
+    <Menu mode="horizontal" selectable={false} className="menu">
+      <Item key="/host">
+        <Link to="/host">
           <HomeOutlined />
           Host
         </Link>

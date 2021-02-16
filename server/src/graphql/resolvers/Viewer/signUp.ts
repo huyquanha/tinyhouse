@@ -1,5 +1,5 @@
-import { sendEmail } from '../../../lib/email';
-import { createVerificationEmail } from '../../../lib/email/templates/emailVerification';
+import { sendEmail } from "../../../lib/email";
+import { createVerificationEmail } from "../../../lib/email/templates/emailVerification";
 import {
   UserDocument,
   UserStatus,
@@ -7,14 +7,14 @@ import {
   UserInputErrors,
   Viewer,
   AuthenticationError,
-} from '../../../lib/types';
-import { Database } from '../../../database';
-import crypto from 'crypto';
-import { ObjectId } from 'mongodb';
-import bcrypt from 'bcrypt';
-import { Response } from 'express';
-import { VIEWER_COOKIE } from './cookieOptions';
-import { cookieOptions } from './cookieOptions';
+} from "../../../lib/types";
+import { Database } from "../../../database";
+import crypto from "crypto";
+import { ObjectId } from "mongodb";
+import bcrypt from "bcrypt";
+import { Response } from "express";
+import { VIEWER_COOKIE } from "./cookieOptions";
+import { cookieOptions } from "./cookieOptions";
 
 const SALT_ROUNDS = 10;
 
@@ -31,11 +31,11 @@ export const signUp = async (
   });
   if (sameEmailUser) {
     return {
-      __typename: 'UserInputErrors',
+      __typename: "UserInputErrors",
       errors: [
         {
           message: `User with email: ${email} already exists`,
-          input: 'email',
+          input: "email",
         },
       ],
     };
@@ -65,8 +65,8 @@ export const signUp = async (
   const user = userRes.ops[0];
   if (!user) {
     return {
-      __typename: 'DatabaseError',
-      message: 'Failed to create user',
+      __typename: "DatabaseError",
+      message: "Failed to create user",
     };
   }
   await sendVerificationEmail(db, user);
@@ -86,7 +86,7 @@ export const sendVerificationEmail = async (
     },
     {
       $set: {
-        token: crypto.randomBytes(128).toString('hex'),
+        token: crypto.randomBytes(128).toString("hex"),
         createdAt: new Date(),
       },
     },
@@ -98,14 +98,14 @@ export const sendVerificationEmail = async (
   const emailVerification = emailVerificationRes.value;
   if (!emailVerification) {
     return {
-      __typename: 'DatabaseError',
-      message: 'Unable to save verification token',
+      __typename: "DatabaseError",
+      message: "Unable to save verification token",
     };
   }
   // send verification email
   await sendEmail(createVerificationEmail(user, emailVerification));
   return {
-    __typename: 'Viewer',
+    __typename: "Viewer",
     contact: user.contact,
     didRequest: true,
   };
@@ -121,8 +121,8 @@ export const verifyEmail = async (
   });
   if (!verificationRecord) {
     return {
-      __typename: 'AuthenticationError',
-      message: 'Token is invalid or has expired',
+      __typename: "AuthenticationError",
+      message: "Token is invalid or has expired",
     };
   }
   const user = await db.users.findOne({
@@ -130,11 +130,11 @@ export const verifyEmail = async (
   });
   if (!user) {
     return {
-      __typename: 'DatabaseError',
-      message: 'User not found',
+      __typename: "DatabaseError",
+      message: "User not found",
     };
   }
-  const sessionToken = crypto.randomBytes(16).toString('hex');
+  const sessionToken = crypto.randomBytes(16).toString("hex");
   let viewer: UserDocument | undefined;
   if (user.status === UserStatus.ACTIVE) {
     // this means user has either logged in via an identity provider, which automatically confirms the email,
@@ -174,8 +174,8 @@ export const verifyEmail = async (
   }
   if (!viewer) {
     return {
-      __typename: 'DatabaseError',
-      message: 'User not found or failed to be updated',
+      __typename: "DatabaseError",
+      message: "User not found or failed to be updated",
     };
   }
   res.cookie(VIEWER_COOKIE, viewer._id.toHexString(), {

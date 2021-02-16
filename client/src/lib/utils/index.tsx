@@ -1,14 +1,14 @@
-import { message, notification } from 'antd';
-import { FormikErrors, FormikTouched } from 'formik';
+import { message, notification } from "antd";
+import { FormikErrors, FormikTouched } from "formik";
 
 export const displaySuccessNotification = (
   message: string,
   description?: string
 ) => {
-  return notification['success']({
+  return notification["success"]({
     message,
     description,
-    placement: 'topLeft',
+    placement: "topLeft",
     style: {
       marginTop: 50,
     },
@@ -31,7 +31,7 @@ export const shouldDisplayInputError = <T extends Record<string, unknown>>(
   data?: { __typename: string; errors?: { input: string; message: string }[] }
 ): boolean =>
   !!(errors[input] && touched[input]) ||
-  (data?.__typename === 'UserInputErrors' &&
+  (data?.__typename === "UserInputErrors" &&
     (data?.errors ?? []).some((e) => e.input === input));
 
 export const getErrorSpan = <T extends Record<string, unknown>>(
@@ -43,7 +43,7 @@ export const getErrorSpan = <T extends Record<string, unknown>>(
   input: keyof T,
   data?: { __typename: string; errors?: { input: string; message: string }[] }
 ) => (
-  <span color='red'>
+  <span color="red">
     {errors[input] ??
       (data?.errors ?? []).find((e) => e.input === input)?.message}
   </span>

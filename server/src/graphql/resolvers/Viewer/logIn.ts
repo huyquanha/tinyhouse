@@ -1,4 +1,4 @@
-import { VIEWER_COOKIE } from './cookieOptions';
+import { VIEWER_COOKIE } from "./cookieOptions";
 import {
   AuthenticationError,
   DatabaseError,
@@ -7,13 +7,13 @@ import {
   UserDocument,
   UserInputErrors,
   UserStatus,
-} from '../../../lib/types';
-import { Database } from '../../../database';
-import bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
-import { Facebook, Google, UserInfo } from '../../../lib/api';
-import { ObjectId } from 'mongodb';
-import { cookieOptions } from './cookieOptions';
+} from "../../../lib/types";
+import { Database } from "../../../database";
+import bcrypt from "bcrypt";
+import { Request, Response } from "express";
+import { Facebook, Google, UserInfo } from "../../../lib/api";
+import { ObjectId } from "mongodb";
+import { cookieOptions } from "./cookieOptions";
 
 export const logInViaEmail = async (
   email: string,
@@ -26,17 +26,17 @@ export const logInViaEmail = async (
     contact: email,
   });
   const userIdentity = await db.userIdentities.findOne({
-    'identity.email': email,
+    "identity.email": email,
   });
   // use case: user logs in via provider only so doesn't have
   // an email identity => missing identity should also throws
   if (!user || !userIdentity) {
     return {
-      __typename: 'UserInputErrors',
+      __typename: "UserInputErrors",
       errors: [
         {
           message: `Email doesn't exist`,
-          input: 'email',
+          input: "email",
         },
       ],
     };
@@ -49,11 +49,11 @@ export const logInViaEmail = async (
   const valid = await bcrypt.compare(password, passwordIdentity.password);
   if (!valid) {
     return {
-      __typename: 'UserInputErrors',
+      __typename: "UserInputErrors",
       errors: [
         {
-          message: 'Incorrect password',
-          input: 'password',
+          message: "Incorrect password",
+          input: "password",
         },
       ],
     };
@@ -75,8 +75,8 @@ export const logInViaEmail = async (
       const viewer = updateRes.value;
       if (!viewer) {
         return {
-          __typename: 'DatabaseError',
-          message: 'User not found or failed to be updated',
+          __typename: "DatabaseError",
+          message: "User not found or failed to be updated",
         };
       }
       res.cookie(VIEWER_COOKIE, viewer._id.toHexString(), {
@@ -109,31 +109,31 @@ export const logInViaProvider = async (
       break;
     default:
       return {
-        __typename: 'UserInputErrors',
+        __typename: "UserInputErrors",
         errors: [
           {
             message: `Unsuporrted OAuth provider: ${provider}`,
-            input: 'provider',
+            input: "provider",
           },
         ],
       };
   }
   if (!userInfo) {
     return {
-      __typename: 'AuthenticationError',
+      __typename: "AuthenticationError",
       message: `${provider} login error: missing user info`,
     };
   }
   const { userId, name, avatar, contact } = userInfo;
   if (!userId || !name || !contact) {
     return {
-      __typename: 'AuthenticationError',
+      __typename: "AuthenticationError",
       message: `${provider} login error: Missing required user details`,
     };
   }
   const existingIdentity = await db.userIdentities.findOne({
-    'identity.provider': provider,
-    'identity.userId': userId,
+    "identity.provider": provider,
+    "identity.userId": userId,
   });
   let viewer: UserDocument | null | undefined;
   if (!existingIdentity) {
@@ -219,8 +219,8 @@ export const logInViaProvider = async (
   }
   if (!viewer) {
     return {
-      __typename: 'DatabaseError',
-      message: 'User not found or failed to be updated',
+      __typename: "DatabaseError",
+      message: "User not found or failed to be updated",
     };
   }
   res.cookie(VIEWER_COOKIE, viewer._id.toHexString(), {
@@ -238,8 +238,8 @@ export const logInViaCookie = async (
 ): Promise<UserDocument | AuthenticationError | DatabaseError> => {
   if (!req.signedCookies[VIEWER_COOKIE]) {
     return {
-      __typename: 'AuthenticationError',
-      message: 'Missing authentication cookie',
+      __typename: "AuthenticationError",
+      message: "Missing authentication cookie",
     };
   }
   const updateRes = await db.users.findOneAndUpdate(
@@ -255,8 +255,8 @@ export const logInViaCookie = async (
   if (!viewer) {
     res.clearCookie(VIEWER_COOKIE, cookieOptions);
     return {
-      __typename: 'DatabaseError',
-      message: 'User not found or failed to be updated',
+      __typename: "DatabaseError",
+      message: "User not found or failed to be updated",
     };
   } else {
     return viewer;

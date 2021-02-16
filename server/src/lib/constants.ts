@@ -1,16 +1,16 @@
 export enum UserStatus {
-  ACTIVE = 'active',
-  PENDING = 'pending',
+  ACTIVE = "active",
+  PENDING = "pending",
 }
 
 export enum ListingType {
-  APARTMENT = 'APARTMENT',
-  HOUSE = 'HOUSE',
+  APARTMENT = "APARTMENT",
+  HOUSE = "HOUSE",
 }
 
 export enum Provider {
-  GOOGLE = 'GOOGLE',
-  FACEBOOK = 'FACEBOOK',
+  GOOGLE = "GOOGLE",
+  FACEBOOK = "FACEBOOK",
 }
 
-export const VIEWER_COOKIE = 'viewer';
+export const VIEWER_COOKIE = "viewer";
