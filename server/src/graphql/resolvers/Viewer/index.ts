@@ -66,7 +66,7 @@ export const viewerResolvers: IResolvers = {
           errors: inputErrors as UserInputError[],
         };
       }
-      const userOrError = await signUp(db, name, email, password, avatar);
+      const userOrError = await signUp(db, name, email, password, avatar)
       // because the user does not verify email yet, we don't add cookie and only return email
       if (isUserDocument(userOrError)) {
         return {
