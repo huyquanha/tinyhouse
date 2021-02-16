@@ -45,7 +45,7 @@ export const viewerResolvers: IResolvers = {
       _root: undefined,
       { input }: SignUpArgs,
       { db }: { db: Database; req: Request; res: Response }
-    ) => {
+    ): Promise<SignUpResult> => {
       const { name, email, avatar, password } = input;
       const inputErrors = Object.keys(input)
         .map((k) => {
