@@ -10,30 +10,27 @@
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "postinstall": "npm install --prefix server && npm install --prefix client",
+    "postinstall": "npm install --prefix server && npm install --prefix client && husky install",
     "build": "npm run build --prefix server && npm run build --prefix client",
     "start": "npm start --prefix server",
     "dev": "npm run dev --prefix server && npm start --prefix client",
     "format": "npx prettier --write .",
-    "lint": "npm run lint --prefix server ; npm run lint --prefix client",
-    "cm": "cz"
+    "ci-lint": "npm run ci-lint --prefix server; npm run ci-lint --prefix client"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "husky": {
-    "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "eslint --ext .js,.ts,.tsx,.jsx --cache --fix",
+    "./server/**/*.{js,ts}": [
+      "npm run lint --prefix server",
       "prettier --write"
     ],
-    "*.{js,css,md}": "prettier --write"
+    "./client/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint --prefix client",
+      "prettier --write"
+    ],
+    "*.{css,md}": "prettier --write"
   }
 }
