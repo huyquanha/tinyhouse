@@ -77,11 +77,14 @@ const App = () => {
 
   useEffect(() => {
     const { searchParams, pathname } = new URL(window.location.href);
-    const token = searchParams.get("token");
-    if (pathname === "/verifyEmail" && token) {
+    if (
+      (pathname === "/verifyEmail" && searchParams.get("token")) ||
+      (pathname.startsWith("/login") && searchParams.get("code"))
+    ) {
       // For a better UX, we don't want to show error
-      // for login failure when user is trying to verify their email. We will bypass it and let
-      // VerifyEmail handles user authentication instead
+      // for login failure when user is trying to login via provider or
+      // verify their email. We will bypass it and let the corresponding routes
+      // handles user authentication instead
       // Here we set didRequest to true to not get caught in an infinite loop in the loading check
       setViewerRef.current({
         ...initialViewer,
