@@ -1,5 +1,5 @@
 {
-  "name": "tinyhouse-server",
+  "name": "@tinyhouse/server",
   "version": "0.1.0",
   "dependencies": {
     "@graphql-codegen/typescript-mongodb": "^1.17.9",

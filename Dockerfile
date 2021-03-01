@@ -1,10 +1,13 @@
-FROM node:15.13.0 as base
+FROM node:14.16.0 as base
 
 WORKDIR /app
 
-COPY **/package.json **/package-lock.json ./
+COPY package*.json ./
+COPY ./server/package*.json ./server/
+COPY ./client/package*.json ./client/
 
 FROM base as lint
+RUN npm set unsafe-perm true
 RUN npm ci
 COPY . .
 RUN npm run ci-lint
