@@ -482,6 +482,11 @@
 .listings__title.ant-typography {
   color: #1d226c;
 }
+.center-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .log-in {
   display: flex;
   align-items: center;

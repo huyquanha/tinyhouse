@@ -1,21 +1,28 @@
 import { ApolloError, IResolvers } from "apollo-server-express";
 import {
   Viewer,
-  Provider,
-  UserStatus,
-  UserDocument,
-  SignUpResult,
   DatabaseError,
   AuthenticationError,
   UserInputErrors,
   UserInputError,
+  User,
+  Database,
+  Provider,
+  UserStatus,
+  Facebook,
+  Google,
+} from "../../../lib";
+import {
+  SignUpResult,
   ResendVerificationEmailResult,
   VerifyEmailResult,
   LogInResult,
-} from "../../../lib/types";
-import { Database } from "../../../database";
-import { Facebook, Google } from "../../../lib/api";
-import { AuthUrlArgs, LogInArgs, SignUpArgs, VerifyEmailArgs } from "./types";
+  MutationLogInArgs,
+  QueryAuthUrlArgs,
+  MutationSignUpArgs,
+  MutationVerifyEmailArgs,
+  MutationResendVerificationEmailArgs,
+} from "./types";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import { VIEWER_COOKIE } from "./cookieOptions";
@@ -23,13 +30,13 @@ import { sendVerificationEmail, signUp, verifyEmail } from "./signUp";
 import { logInViaCookie, logInViaEmail, logInViaProvider } from "./logIn";
 import { cookieOptions } from "./cookieOptions";
 
-const isUserDocument = (
-  user: UserDocument | UserInputErrors | DatabaseError | AuthenticationError
-): user is UserDocument => (user as UserDocument)._id !== undefined;
+const isUser = (
+  user: User | UserInputErrors | DatabaseError | AuthenticationError
+): user is User => (user as User)._id !== undefined;
 
 export const viewerResolvers: IResolvers = {
   Query: {
-    authUrl: (_root: undefined, { provider }: AuthUrlArgs): string => {
+    authUrl: (_root: undefined, { provider }: QueryAuthUrlArgs): string => {
       switch (provider) {
         case Provider.GOOGLE:
           return Google.authUrl;
@@ -43,7 +50,7 @@ export const viewerResolvers: IResolvers = {
   Mutation: {
     signUp: async (
       _root: undefined,
-      { input }: SignUpArgs,
+      { input }: MutationSignUpArgs,
       { db }: { db: Database; req: Request; res: Response }
     ): Promise<SignUpResult> => {
       const { name, email, avatar, password } = input;
@@ -68,63 +75,68 @@ export const viewerResolvers: IResolvers = {
       }
       const userOrError = await signUp(db, name, email, password, avatar);
       // because the user does not verify email yet, we don't add cookie and only return email
-      if (isUserDocument(userOrError)) {
+      if (isUser(userOrError)) {
         return {
           __typename: "Viewer",
           contact: userOrError.contact,
           didRequest: true,
         };
-      } else {
-        // this is an expected error
-        return userOrError;
       }
+      // this is an expected error
+      return userOrError;
     },
     resendVerificationEmail: async (
       _root: undefined,
-      { email }: { email: string },
+      { email }: MutationResendVerificationEmailArgs,
       { db }: { db: Database }
     ): Promise<ResendVerificationEmailResult> => {
-      const viewer = await db.users.findOne({
+      const user = await db.users.findOne({
         contact: email,
       });
-      if (!viewer) {
+      if (!user) {
         return {
           __typename: "DatabaseError",
           message: "User not found",
         };
       }
-      return sendVerificationEmail(db, viewer);
+      const userOrError = await sendVerificationEmail(db, user);
+      if (isUser(userOrError)) {
+        return {
+          __typename: "Viewer",
+          contact: user.contact,
+          didRequest: true,
+        };
+      }
+      return userOrError;
     },
     verifyEmail: async (
       _root: undefined,
-      { token }: VerifyEmailArgs,
+      { token }: MutationVerifyEmailArgs,
       { db, res }: { db: Database; res: Response }
     ): Promise<VerifyEmailResult> => {
       const userOrError = await verifyEmail(db, token, res);
-      if (isUserDocument(userOrError)) {
+      if (isUser(userOrError)) {
         return {
           __typename: "Viewer",
-          id: userOrError._id.toHexString(),
+          _id: userOrError._id,
           status: userOrError.status,
           contact: userOrError.contact,
           token: userOrError.token,
           avatar: userOrError.avatar,
-          hasWallet: !!userOrError.walletId,
+          walletId: userOrError.walletId,
           didRequest: true,
         };
-      } else {
-        // expected error
-        return userOrError;
       }
+      return userOrError;
     },
     logIn: async (
       _root: undefined,
-      { input }: LogInArgs,
+      { input }: MutationLogInArgs,
       { db, req, res }: { db: Database; req: Request; res: Response }
     ): Promise<LogInResult> => {
       const token = crypto.randomBytes(16).toString("hex");
       let userOrError:
-        | UserDocument
+        | User
         | UserInputErrors
         | AuthenticationError
         | DatabaseError;
@@ -145,20 +157,19 @@ export const viewerResolvers: IResolvers = {
         // log in via cookie
         userOrError = await logInViaCookie(token, db, req, res);
       }
-      if (isUserDocument(userOrError)) {
+      if (isUser(userOrError)) {
         return {
           __typename: "Viewer",
-          id: userOrError._id.toHexString(),
+          _id: userOrError._id,
           status: userOrError.status,
           contact: userOrError.contact,
           token: userOrError.token,
           avatar: userOrError.avatar,
-          hasWallet: !!userOrError.walletId,
+          walletId: userOrError.walletId,
           didRequest: true,
         };
-      } else {
-        return userOrError;
       }
+      return userOrError;
     },
     logOut: (
       _root: undefined,
@@ -170,6 +181,11 @@ export const viewerResolvers: IResolvers = {
       res.clearCookie(VIEWER_COOKIE, cookieOptions);
       return { __typename: "Viewer", didRequest: true };
     },
+  },
+  Viewer: {
+    id: (viewer: Viewer): string | undefined => viewer._id?.toHexString(),
+    hasWallet: (viewer: Viewer): boolean | null =>
+      viewer.walletId ? true : null,
   },
   UserStatus: {
     ACTIVE: UserStatus.ACTIVE,

@@ -1,5 +1,12 @@
 import { Collection, Db } from "mongodb";
-import { BookingDocument } from "../lib/types";
+import { Booking } from "../lib/types";
 
-export const getBookingsCollection = (db: Db): Collection<BookingDocument> =>
-  db.collection<BookingDocument>("bookings");
+export const getBookingsCollection = async (
+  db: Db
+): Promise<Collection<Booking>> => {
+  const collection = db.collection<Booking>("bookings");
+  await collection.createIndex({
+    tenant: 1,
+  });
+  return collection;
+};

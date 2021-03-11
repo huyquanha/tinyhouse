@@ -1,27 +1,55 @@
-import { Provider } from "../../../lib/types";
+import {
+  AuthenticationError,
+  DatabaseError,
+  Provider,
+  UserInputErrors,
+  Viewer,
+} from "../../../lib";
 
-export interface SignUpArgs {
-  input: {
-    name: string;
-    avatar?: string;
-    email: string;
-    password: string;
-  };
+// inputs
+export interface SignUpInput {
+  readonly name: string;
+  readonly avatar?: string;
+  readonly email: string;
+  readonly password: string;
 }
 
-export interface LogInArgs {
-  input: {
-    code?: string;
-    provider?: Provider;
-    email?: string;
-    password?: string;
-  } | null;
+export interface LogInInput {
+  readonly provider?: Provider;
+  readonly code?: string;
+  readonly email?: string;
+  readonly password?: string;
 }
 
-export interface AuthUrlArgs {
-  provider: Provider;
+export interface QueryAuthUrlArgs {
+  readonly provider: Provider;
 }
 
-export interface VerifyEmailArgs {
-  token: string;
+export interface MutationSignUpArgs {
+  readonly input: SignUpInput;
 }
+
+export interface MutationResendVerificationEmailArgs {
+  readonly email: string;
+}
+
+export interface MutationVerifyEmailArgs {
+  readonly token: string;
+}
+
+export interface MutationLogInArgs {
+  readonly input?: LogInInput;
+}
+
+// Results
+export type SignUpResult = Viewer | UserInputErrors | DatabaseError;
+
+export type ResendVerificationEmailResult = Viewer | DatabaseError;
+
+export type VerifyEmailResult = Viewer | DatabaseError | AuthenticationError;
+
+export type LogInResult =
+  | Viewer
+  | UserInputErrors
+  | AuthenticationError
+  | DatabaseError;

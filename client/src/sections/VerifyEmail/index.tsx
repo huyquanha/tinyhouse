@@ -8,23 +8,23 @@ import {
 } from "../../lib/graphql/mutations/VerifyEmail/__generated__/VerifyEmail";
 import { VERIFY_EMAIL } from "../../lib/graphql/mutations/VerifyEmail";
 import { displaySuccessNotification } from "../../lib/utils";
-import { Redirect } from "react-router-dom";
+import { Redirect, RouteComponentProps } from "react-router-dom";
 import { ErrorBanner } from "../../lib/components";
 
 const { Text, Title } = Typography;
 
 const { Content } = Layout;
 
-interface Props {
-  setViewer: (viewer: Viewer) => void;
-  location?: {
-    state?: {
-      email?: string;
-    };
-  };
+interface LocationState {
+  email?: string;
 }
 
-export const VerifyEmail = ({ setViewer, location }: Props) => {
+interface Props
+  extends RouteComponentProps<any, any, LocationState | undefined> {
+  setViewer: (viewer: Viewer) => void;
+}
+
+export const VerifyEmail = ({ setViewer, location: { state } }: Props) => {
   const [
     verifyEmail,
     {
@@ -51,19 +51,35 @@ export const VerifyEmail = ({ setViewer, location }: Props) => {
   useEffect(() => {
     const { searchParams } = new URL(window.location.href);
     const token = searchParams.get("token");
-    if (token) {
+    // If the email is attached in the state, this component is meant to
+    // show a notification that email has been sent => should not attempt
+    // to fire the verify mutation.
+    // Otherwise if state.email is undefined, and we have a token, we will attempt
+    // to verify the email
+    if (!state?.email && token) {
       verifyEmailRef.current({
         variables: {
           token,
         },
       });
     }
-  }, []);
+  }, [state]);
 
   if (verifyEmailLoading) {
     return (
-      <Content className="log-in">
+      <Content className="center-spinner">
         <Spin size="large" tip="Verifying your account..." />
+      </Content>
+    );
+  }
+
+  if (
+    verifyEmailError ||
+    verifyEmailData?.verifyEmail.__typename.endsWith("Error")
+  ) {
+    return (
+      <Content className="log-in">
+        <ErrorBanner description="We weren't able to verify your account. Please try again soon." />
       </Content>
     );
   }
@@ -76,22 +92,15 @@ export const VerifyEmail = ({ setViewer, location }: Props) => {
     return <Redirect to={`/user/${viewerId}`} />;
   }
 
-  const verifyEmailErrorBannerElement =
-    verifyEmailError ||
-    verifyEmailData?.verifyEmail.__typename.endsWith("Error") ? (
-      <ErrorBanner description="We weren't able to verify your account. Please try again soon." />
-    ) : null;
-
   return (
     <Content className="log-in">
       <Card className="log-in-card">
-        {verifyEmailErrorBannerElement}
         <div className="log-in-card__intro">
           <Title level={3} className="log-in-card__intro-title">
             {"Please verify your email to access your account"}
           </Title>
           <Text>{`A verification email has been sent to ${
-            location?.state?.email ?? "your email address"
+            state?.email ?? "your email address"
           }`}</Text>
         </div>
       </Card>

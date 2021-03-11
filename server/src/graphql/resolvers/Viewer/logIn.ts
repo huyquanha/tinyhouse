@@ -1,17 +1,19 @@
 import { VIEWER_COOKIE } from "./cookieOptions";
 import {
+  Database,
   AuthenticationError,
   DatabaseError,
   PasswordIdentity,
   Provider,
-  UserDocument,
+  User,
   UserInputErrors,
   UserStatus,
-} from "../../../lib/types";
-import { Database } from "../../../database";
+  Facebook,
+  Google,
+  UserInfo,
+} from "../../../lib";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { Facebook, Google, UserInfo } from "../../../lib/api";
 import { ObjectId } from "mongodb";
 import { cookieOptions } from "./cookieOptions";
 
@@ -21,7 +23,7 @@ export const logInViaEmail = async (
   token: string,
   db: Database,
   res: Response
-): Promise<UserDocument | UserInputErrors | DatabaseError> => {
+): Promise<User | UserInputErrors | DatabaseError> => {
   const user = await db.users.findOne({
     contact: email,
   });
@@ -58,35 +60,34 @@ export const logInViaEmail = async (
       ],
     };
   } else {
-    if (user.status === UserStatus.ACTIVE) {
-      const updateRes = await db.users.findOneAndUpdate(
-        {
-          _id: userIdentity.userGuid,
-        },
-        {
-          $set: {
-            token,
-          },
-        },
-        {
-          returnOriginal: false,
-        }
-      );
-      const viewer = updateRes.value;
-      if (!viewer) {
-        return {
-          __typename: "DatabaseError",
-          message: "User not found or failed to be updated",
-        };
-      }
-      res.cookie(VIEWER_COOKIE, viewer._id.toHexString(), {
-        ...cookieOptions,
-        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      });
-      return viewer;
+    if (user.status !== UserStatus.ACTIVE) {
+      return user;
     }
-    // return user as is if its status is still pending
-    return user;
+    const updateRes = await db.users.findOneAndUpdate(
+      {
+        _id: userIdentity.userGuid,
+      },
+      {
+        $set: {
+          token,
+        },
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+    const viewer = updateRes.value;
+    if (!viewer) {
+      return {
+        __typename: "DatabaseError",
+        message: "User not found or failed to be updated",
+      };
+    }
+    res.cookie(VIEWER_COOKIE, viewer._id.toHexString(), {
+      ...cookieOptions,
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    });
+    return viewer;
   }
 };
 
@@ -96,9 +97,7 @@ export const logInViaProvider = async (
   token: string,
   db: Database,
   res: Response
-): Promise<
-  UserDocument | UserInputErrors | AuthenticationError | DatabaseError
-> => {
+): Promise<User | UserInputErrors | AuthenticationError | DatabaseError> => {
   let userInfo: UserInfo | null = null;
   switch (provider) {
     case Provider.GOOGLE:
@@ -135,7 +134,7 @@ export const logInViaProvider = async (
     "identity.provider": provider,
     "identity.userId": userId,
   });
-  let viewer: UserDocument | null | undefined;
+  let viewer: User | null | undefined;
   if (!existingIdentity) {
     // check if user with the same email exist
     const sameEmailUser = await db.users.findOne({
@@ -235,7 +234,7 @@ export const logInViaCookie = async (
   db: Database,
   req: Request,
   res: Response
-): Promise<UserDocument | AuthenticationError | DatabaseError> => {
+): Promise<User | AuthenticationError | DatabaseError> => {
   if (!req.signedCookies[VIEWER_COOKIE]) {
     return {
       __typename: "AuthenticationError",

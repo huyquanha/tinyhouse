@@ -1,20 +1,18 @@
 import { sendEmail } from "../../../lib/email";
 import { createVerificationEmail } from "../../../lib/email/templates/emailVerification";
 import {
-  UserDocument,
   UserStatus,
   DatabaseError,
-  UserInputErrors,
-  Viewer,
   AuthenticationError,
-} from "../../../lib/types";
-import { Database } from "../../../database";
+  User,
+  Database,
+  UserInputErrors,
+} from "../../../lib";
 import crypto from "crypto";
 import { ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
 import { Response } from "express";
-import { VIEWER_COOKIE } from "./cookieOptions";
-import { cookieOptions } from "./cookieOptions";
+import { VIEWER_COOKIE, cookieOptions } from "./cookieOptions";
 
 const SALT_ROUNDS = 10;
 
@@ -24,7 +22,7 @@ export const signUp = async (
   email: string,
   password: string,
   avatar?: string
-): Promise<UserDocument | UserInputErrors | DatabaseError> => {
+): Promise<User | UserInputErrors | DatabaseError> => {
   // check if user with the same email exists
   const sameEmailUser = await db.users.findOne({
     contact: email,
@@ -70,14 +68,13 @@ export const signUp = async (
     };
   }
   await sendVerificationEmail(db, user);
-  // because the user does not verify email yet, we don't add cookie and only return email
   return user;
 };
 
 export const sendVerificationEmail = async (
   db: Database,
-  user: UserDocument
-): Promise<Viewer | DatabaseError> => {
+  user: User
+): Promise<DatabaseError | User> => {
   // there is a tiny little chance that crypto.randomBytes() generate
   // the same token for another user, however with 128 bytes this is extremely unlikely
   const emailVerificationRes = await db.emailVerifications.findOneAndUpdate(
@@ -86,6 +83,9 @@ export const sendVerificationEmail = async (
     },
     {
       $set: {
+        // use hex instead of base64 because base64 string is not url-safe
+        // hex storage size is a bit bigger but we don't really care since emailVerification
+        // has TTL
         token: crypto.randomBytes(128).toString("hex"),
         createdAt: new Date(),
       },
@@ -104,18 +104,14 @@ export const sendVerificationEmail = async (
   }
   // send verification email
   await sendEmail(createVerificationEmail(user, emailVerification));
-  return {
-    __typename: "Viewer",
-    contact: user.contact,
-    didRequest: true,
-  };
+  return user;
 };
 
 export const verifyEmail = async (
   db: Database,
   token: string,
   res: Response
-): Promise<UserDocument | AuthenticationError | DatabaseError> => {
+): Promise<User | AuthenticationError | DatabaseError> => {
   const verificationRecord = await db.emailVerifications.findOne({
     token,
   });
@@ -135,43 +131,28 @@ export const verifyEmail = async (
     };
   }
   const sessionToken = crypto.randomBytes(16).toString("hex");
-  let viewer: UserDocument | undefined;
-  if (user.status === UserStatus.ACTIVE) {
-    // this means user has either logged in via an identity provider, which automatically confirms the email,
-    // or the token has been used.
-    // This also cater for the case when the original link has expired but user then logs in via an identity provider
-    // When user requests another link, we only check the status of the user being active without caring about the token status
-    const updateRes = await db.users.findOneAndUpdate(
-      {
-        _id: user._id,
-      },
-      {
-        $set: {
-          token: sessionToken,
-        },
-      },
-      {
-        returnOriginal: false,
-      }
-    );
-    viewer = updateRes.value;
-  } else {
-    const userRes = await db.users.findOneAndUpdate(
-      {
-        _id: user._id,
-      },
-      {
-        $set: {
+  const updateParams = {
+    token: sessionToken,
+    // status could be ACTIVE if user has either logged in via an identity provider,
+    // which automatically confirms the email, or the token has been used.
+    ...(user.status !== UserStatus.ACTIVE
+      ? {
           status: UserStatus.ACTIVE,
-          token: sessionToken,
-        },
-      },
-      {
-        returnOriginal: false,
-      }
-    );
-    viewer = userRes.value;
-  }
+        }
+      : {}),
+  };
+  const updateRes = await db.users.findOneAndUpdate(
+    {
+      _id: user._id,
+    },
+    {
+      $set: updateParams,
+    },
+    {
+      returnOriginal: false,
+    }
+  );
+  const viewer = updateRes.value;
   if (!viewer) {
     return {
       __typename: "DatabaseError",

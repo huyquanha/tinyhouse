@@ -1,5 +1,5 @@
 import { Collection, Db } from "mongodb";
-import { ListingDocument } from "../lib/types";
+import { Listing } from "../lib/types";
 
-export const getListingsCollection = (db: Db): Collection<ListingDocument> =>
-  db.collection<ListingDocument>("listings");
+export const getListingsCollection = (db: Db): Collection<Listing> =>
+  db.collection<Listing>("listings");

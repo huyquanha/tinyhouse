@@ -16,9 +16,11 @@ import {
 import {
   ApolloClient,
   ApolloProvider,
+  createHttpLink,
   InMemoryCache,
   useMutation,
 } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import "./styles/index.css";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { Layout, Affix, Spin } from "antd";
@@ -31,12 +33,24 @@ import {
 import { AppHeaderSkeleton, ErrorBanner } from "./lib/components";
 import { UserStatus } from "./lib/graphql/globalTypes";
 
-const client = new ApolloClient({
+const httpLink = createHttpLink({
   uri: "/api",
+});
+
+const authLink = setContext((_, { headers }) => {
+  const token = sessionStorage.getItem("token");
+  // return the headers to the context so httpLink can read them
+  return {
+    headers: {
+      ...headers,
+      "X-CSRF-TOKEN": token ?? "",
+    },
+  };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
-  headers: {
-    "X-CSRF-TOKEN": sessionStorage.getItem("token") ?? "",
-  },
 });
 
 const initialViewer: Viewer = {
@@ -152,9 +166,12 @@ const App = () => {
           <Route exact path="/listings/:location?">
             <Listings />
           </Route>
-          <Route exact path="/user/:id">
-            <User />
-          </Route>
+          {/** has to use component here to get the match props */}
+          <Route
+            exact
+            path="/user/:id"
+            render={(props) => <User {...props} viewer={viewer} />}
+          />
           <Route
             exact
             path={["/login", "/login/google", "/login/facebook"]}

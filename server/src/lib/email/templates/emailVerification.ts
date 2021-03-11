@@ -1,4 +1,4 @@
-import { EmailVerificationDocument, UserDocument } from "../../types";
+import { EmailVerificationDocument, UserDocument } from "../../generatedTypes";
 import { IEmail } from "../types";
 
 export const createVerificationEmail = (

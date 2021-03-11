@@ -1,11 +1,11 @@
 import { Collection, Db } from "mongodb";
-import { UserIdentityDocument } from "../lib/types";
+import { UserIdentity } from "../lib/types";
 
 export const getUserIdentitiesCollection = async (
   db: Db
-): Promise<Collection<UserIdentityDocument>> => {
+): Promise<Collection<UserIdentity>> => {
   // create indices on userIdentities collection (only executed for indices that do not yet exist)
-  const userIdentitiesCollection = db.collection<UserIdentityDocument>(
+  const userIdentitiesCollection = db.collection<UserIdentity>(
     "userIdentities"
   );
   await userIdentitiesCollection.createIndexes([
