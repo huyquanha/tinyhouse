@@ -41,7 +41,6 @@
     "build": "tsc -p ./",
     "seed": "ts-node temp/seed.ts",
     "clear": "ts-node temp/clear.ts",
-    "generate": "npx gql-gen --config codegen.yml",
     "lint": "npx eslint",
     "ci-lint": "npm run lint -- \"**/*.ts\""
   }

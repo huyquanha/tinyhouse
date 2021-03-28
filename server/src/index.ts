@@ -7,7 +7,6 @@ import { connectDatabase } from "./database";
 import { typeDefs, resolvers } from "./graphql";
 import cookieParser from "cookie-parser";
 import path from "path";
-import { DIRECTIVES } from "@graphql-codegen/typescript-mongodb";
 
 const mount = async (app: Application) => {
   const db = await connectDatabase();
@@ -15,7 +14,7 @@ const mount = async (app: Application) => {
   app.use(cookieParser(process.env.SECRET));
 
   const server = new ApolloServer({
-    typeDefs: [DIRECTIVES, typeDefs],
+    typeDefs,
     resolvers,
     context: ({ req, res }) => ({ db, req, res }),
   });

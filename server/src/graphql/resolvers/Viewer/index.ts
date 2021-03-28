@@ -22,6 +22,7 @@ import {
   MutationSignUpArgs,
   MutationVerifyEmailArgs,
   MutationResendVerificationEmailArgs,
+  SignUpInput,
 } from "./types";
 import crypto from "crypto";
 import { Request, Response } from "express";
@@ -53,61 +54,70 @@ export const viewerResolvers: IResolvers = {
       { input }: MutationSignUpArgs,
       { db }: { db: Database; req: Request; res: Response }
     ): Promise<SignUpResult> => {
-      const { name, email, avatar, password } = input;
-      const inputErrors = Object.keys(input)
-        .map((k) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if (k !== "avatar" && !(input as any)[k]) {
-            return {
-              message: `${
-                k.charAt(0).toLocaleUpperCase() + k.slice(1)
-              } is required`,
-              input: k,
-            };
-          }
-        })
-        .filter((e) => e);
-      if (inputErrors.length > 0) {
-        return {
-          __typename: "UserInputErrors",
-          errors: inputErrors as UserInputError[],
-        };
+      try {
+        const { name, email, avatar, password } = input;
+        const inputErrors = Object.keys(input)
+          .map((k) => {
+            if (k !== "avatar" && !input[k as keyof SignUpInput]) {
+              return {
+                message: `${
+                  k.charAt(0).toLocaleUpperCase() + k.slice(1)
+                } is required`,
+                input: k,
+              };
+            }
+          })
+          .filter((e) => e);
+        if (inputErrors.length > 0) {
+          return {
+            __typename: "UserInputErrors",
+            errors: inputErrors as UserInputError[],
+          };
+        }
+        const userOrError = await signUp(db, name, email, password, avatar);
+        // because the user does not verify email yet, we don't add cookie and only return email
+        if (isUser(userOrError)) {
+          return {
+            __typename: "Viewer",
+            contact: userOrError.contact,
+            didRequest: true,
+          };
+        }
+        // this is an expected error
+        return userOrError;
+      } catch (err) {
+        throw new ApolloError(`Unexpected error when signing up: ${err}`);
       }
-      const userOrError = await signUp(db, name, email, password, avatar);
-      // because the user does not verify email yet, we don't add cookie and only return email
-      if (isUser(userOrError)) {
-        return {
-          __typename: "Viewer",
-          contact: userOrError.contact,
-          didRequest: true,
-        };
-      }
-      // this is an expected error
-      return userOrError;
     },
     resendVerificationEmail: async (
       _root: undefined,
       { email }: MutationResendVerificationEmailArgs,
       { db }: { db: Database }
     ): Promise<ResendVerificationEmailResult> => {
-      const user = await db.users.findOne({
-        contact: email,
-      });
-      if (!user) {
-        return {
-          __typename: "DatabaseError",
-          message: "User not found",
-        };
+      try {
+        const user = await db.users.findOne({
+          contact: email,
+        });
+        if (!user) {
+          return {
+            __typename: "DatabaseError",
+            message: "User not found",
+          };
+        }
+        const userOrError = await sendVerificationEmail(db, user);
+        if (isUser(userOrError)) {
+          return {
+            __typename: "Viewer",
+            contact: user.contact,
+            didRequest: true,
+          };
+        }
+        return userOrError;
+      } catch (err) {
+        throw new ApolloError(
+          `Unexpected error when resending verification email: ${err}`
+        );
       }
-      const userOrError = await sendVerificationEmail(db, user);
-      if (isUser(userOrError)) {
-        return {
-          __typename: "Viewer",
-          contact: user.contact,
-          didRequest: true,
-        };
-      }
-      return userOrError;
     },
     verifyEmail: async (
       _root: undefined,
@@ -134,42 +144,52 @@ export const viewerResolvers: IResolvers = {
       { input }: MutationLogInArgs,
       { db, req, res }: { db: Database; req: Request; res: Response }
     ): Promise<LogInResult> => {
-      const token = crypto.randomBytes(16).toString("hex");
-      let userOrError:
-        | User
-        | UserInputErrors
-        | AuthenticationError
-        | DatabaseError;
-      if (input) {
-        const { email, password, code, provider } = input;
-        if (email && password) {
-          userOrError = await logInViaEmail(email, password, token, db, res);
-        } else if (code && provider) {
-          userOrError = await logInViaProvider(provider, code, token, db, res);
+      try {
+        const token = crypto.randomBytes(16).toString("hex");
+        let userOrError:
+          | User
+          | UserInputErrors
+          | AuthenticationError
+          | DatabaseError;
+        if (input) {
+          const { email, password, code, provider } = input;
+          if (email && password) {
+            userOrError = await logInViaEmail(email, password, token, db, res);
+          } else if (code && provider) {
+            userOrError = await logInViaProvider(
+              provider,
+              code,
+              token,
+              db,
+              res
+            );
+          } else {
+            throw new Error(
+              `Unsupported login input format: ${JSON.stringify(
+                Object.keys(input)
+              )}`
+            );
+          }
         } else {
-          throw new ApolloError(
-            `Unsupported login input format: ${JSON.stringify(
-              Object.keys(input)
-            )}`
-          );
+          // log in via cookie
+          userOrError = await logInViaCookie(token, db, req, res);
         }
-      } else {
-        // log in via cookie
-        userOrError = await logInViaCookie(token, db, req, res);
+        if (isUser(userOrError)) {
+          return {
+            __typename: "Viewer",
+            _id: userOrError._id,
+            status: userOrError.status,
+            contact: userOrError.contact,
+            token: userOrError.token,
+            avatar: userOrError.avatar,
+            walletId: userOrError.walletId,
+            didRequest: true,
+          };
+        }
+        return userOrError;
+      } catch (err) {
+        throw new ApolloError(`Unexpected error when logging in: ${err}`);
       }
-      if (isUser(userOrError)) {
-        return {
-          __typename: "Viewer",
-          _id: userOrError._id,
-          status: userOrError.status,
-          contact: userOrError.contact,
-          token: userOrError.token,
-          avatar: userOrError.avatar,
-          walletId: userOrError.walletId,
-          didRequest: true,
-        };
-      }
-      return userOrError;
     },
     logOut: (
       _root: undefined,

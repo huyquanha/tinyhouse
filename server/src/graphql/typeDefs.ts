@@ -9,21 +9,21 @@ export const typeDefs = gql`
     message: String!
   }
 
-  type UserInputError implements Error @entity {
-    message: String! @column
-    input: String! @column
+  type UserInputError implements Error {
+    message: String!
+    input: String!
   }
 
-  type UserInputErrors @entity {
-    errors: [UserInputError!]! @embedded
+  type UserInputErrors {
+    errors: [UserInputError!]!
   }
 
-  type AuthenticationError implements Error @entity {
-    message: String! @column
+  type AuthenticationError implements Error {
+    message: String!
   }
 
-  type DatabaseError implements Error @entity {
-    message: String! @column
+  type DatabaseError implements Error {
+    message: String!
   }
 
   enum Provider {
@@ -41,6 +41,11 @@ export const typeDefs = gql`
     HOUSE
   }
 
+  enum ListingsFilter {
+    PRICE_LOW_TO_HIGH
+    PRICE_HIGH_TO_LOW
+  }
+
   type PasswordIdentity {
     email: String!
     password: String!
@@ -53,89 +58,61 @@ export const typeDefs = gql`
 
   union Identity = PasswordIdentity | OAuthIdentity
 
-  type User
-    @entity(
-      additionalFields: [
-        { path: "status", type: "UserStatus" }
-        { path: "token?", type: "string" }
-        { path: "walletId?", type: "string" }
-        { path: "identities", type: "Array<UserIdentityDocument['_id']>" }
-      ]
-    ) {
-    id: ID! @id
-    name: String! @column
-    avatar: String @column
-    contact: String! @column
-    income: Float @column
-    bookings(lastId: ID, limit: Int!): [Booking!] @link
-    listings(lastId: ID, limit: Int!): [Listing!]! @link
-    authorized: Boolean @column # need to add this so this field appears under UserDocument, but it is not persisted in MongoDB
+  type User {
+    id: ID!
+    name: String!
+    avatar: String
+    contact: String!
+    income: Float
+    bookings(lastId: ID, limit: Int!): [Booking!]
+    listings(lastId: ID, limit: Int!): [Listing!]!
+    authorized: Boolean
     hasWallet: Boolean!
   }
 
-  # type BookingsInfo {
-  #   total: Int!
-  #   result: [Booking!]!
-  # }
-
-  # type ListingsInfo {
-  #   total: Int!
-  #   result: [Listing!]!
-  # }
-
-  type UserIdentity @entity {
-    id: ID! @id
-    userGuid: User! @link
-    identity: Identity! @column
+  type UserIdentity {
+    id: ID!
+    userGuid: User!
+    identity: Identity!
   }
 
-  type EmailVerification @entity {
-    id: User! @link @id
-    token: String! @column
-    createdAt: DateTime! @column
+  type EmailVerification {
+    id: User!
+    token: String!
+    createdAt: DateTime!
   }
 
-  type Listing
-    @entity(
-      additionalFields: [
-        { path: "country", type: "string" }
-        { path: "admin", type: "string" }
-        {
-          path: "bookingsIndex"
-          type: "{ [year: string]: { [month: string]: { [day: string]: boolean } } }"
-        }
-      ]
-    ) {
-    id: ID! @id
-    title: String! @column
-    description: String! @column
-    image: String! @column
-    host: User! @link
-    type: ListingType! @column
-    address: String! @column
-    city: String! @column
-    bookings(lastId: ID, limit: Int!): [Booking!]! @link # bookings made against this listing
+  type Listing {
+    id: ID!
+    title: String!
+    description: String!
+    image: String!
+    host: User!
+    type: ListingType!
+    address: String!
+    city: String!
+    bookings(lastId: ID, limit: Int!): [Booking!] # can be null if viewer is not authorized
     bookingsIndex: String! # we stringify the bookingsIndex object to get this
-    price: Float! @column
-    numOfGuests: Int! @column # maximum number of guests
+    price: Int! # in cents so can be integers
+    numOfGuests: Int!
   }
 
-  type Booking @entity {
-    id: ID! @id
-    listing: Listing! @link
-    tenant: User! @link
-    checkIn: Date! @column
-    checkOut: Date! @column
+  type Booking {
+    id: ID!
+    listing: Listing!
+    tenant: User!
+    checkIn: Date!
+    checkOut: Date!
   }
 
-  type Viewer @entity {
-    id: ID @id
-    status: UserStatus @column
-    contact: String @column
-    token: String @column
-    avatar: String @column
-    hasWallet: Boolean @column
-    didRequest: Boolean! @column
+  type Viewer {
+    id: ID
+    status: UserStatus
+    contact: String
+    token: String
+    avatar: String
+    hasWallet: Boolean
+    didRequest: Boolean!
   }
 
   input SignUpInput {
@@ -152,33 +129,34 @@ export const typeDefs = gql`
     password: String
   }
 
-  union SignUpResult @union(discriminatorField: "__typename") =
+  input ListingsInput {
+    filter: ListingsFilter!
+    lastPrice: Int
+    lastId: ID
+    limit: Int!
+  }
+
+  union SignUpResult = Viewer | UserInputErrors | DatabaseError
+
+  union ResendVerificationEmailResult = Viewer | DatabaseError
+
+  union VerifyEmailResult = Viewer | DatabaseError | AuthenticationError
+
+  union LogInResult =
       Viewer
     | UserInputErrors
-    | DatabaseError
-
-  union ResendVerificationEmailResult @union(discriminatorField: "__typename") =
-      Viewer
-    | DatabaseError
-
-  union VerifyEmailResult @union(discriminatorField: "__typename") =
-      Viewer
-    | DatabaseError
-    | AuthenticationError
-
-  union LogInResult @union(discriminatorField: "__typename") =
-      Viewer
-    | UserInputErrors
     | AuthenticationError
     | DatabaseError
 
-  union UserResult @union(discriminatorField: "__typename") =
-      User
-    | DatabaseError
+  union UserResult = User | DatabaseError
+
+  union ListingResult = Listing | DatabaseError
 
   type Query {
     authUrl(provider: Provider!): String!
     user(id: ID!): UserResult!
+    listing(id: ID!): ListingResult!
+    listings(input: ListingsInput!): [Listing!]!
   }
 
   type Mutation {

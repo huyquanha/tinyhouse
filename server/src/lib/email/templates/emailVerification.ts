@@ -1,9 +1,9 @@
-import { EmailVerificationDocument, UserDocument } from "../../generatedTypes";
+import { EmailVerification, User } from "../../types";
 import { IEmail } from "../types";
 
 export const createVerificationEmail = (
-  user: UserDocument,
-  emailVerification: EmailVerificationDocument
+  user: User,
+  emailVerification: EmailVerification
 ): IEmail => {
   return {
     to: user.contact,

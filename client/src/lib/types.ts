@@ -10,6 +10,11 @@ export interface Viewer {
   didRequest: boolean;
 }
 
+export interface BookingListingParams {
+  lastId: string | null;
+  fetchNext: boolean;
+}
+
 export enum AuthAction {
   LOG_IN = "Log in",
   SIGN_UP = "Sign up",

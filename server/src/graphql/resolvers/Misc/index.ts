@@ -7,6 +7,7 @@ export const miscResolvers: IResolvers = [
   "ResendVerificationEmailResult",
   "VerifyEmailResult",
   "LogInResult",
+  "ListingResult",
   "UserResult",
 ].reduce((accum, k) => {
   accum[k] = {

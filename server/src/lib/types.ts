@@ -105,6 +105,7 @@ export interface Listing {
   bookingsIndex: BookingsIndex; // store the dates the listing have been booked as nested key-value pairs
   price: number;
   numOfGuests: number; // maximum number of guests
+  authorized?: boolean;
 }
 
 export interface Database {

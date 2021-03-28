@@ -6,8 +6,8 @@ export interface QueryUserArgs {
 }
 
 export type ListingBookingsArgs = {
-  lastId?: string;
-  limit: number;
+  readonly lastId?: string;
+  readonly limit: number;
 };
 
 // reuslts

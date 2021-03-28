@@ -20,8 +20,7 @@ export const userResolvers: IResolvers = {
           };
         }
         const viewer = await authorize(db, req);
-        const authorized =
-          viewer && viewer._id.equals(user._id) ? true : undefined;
+        const authorized = viewer?._id.equals(user._id) ? true : undefined;
         return {
           ...user,
           __typename: "User",
@@ -42,58 +41,70 @@ export const userResolvers: IResolvers = {
       { lastId, limit }: ListingBookingsArgs,
       { db }: { db: Database }
     ): Promise<Booking[] | null> => {
-      if (!user.authorized) {
-        return null;
+      try {
+        if (!user.authorized) {
+          return null;
+        }
+        const bookingCursor = db.bookings
+          .find({
+            tenant: user._id,
+            ...(lastId
+              ? {
+                  _id: {
+                    ...(limit > 0
+                      ? { $gt: new ObjectId(lastId) }
+                      : { $lt: new ObjectId(lastId) }),
+                  },
+                }
+              : {}),
+          })
+          .sort({
+            _id: limit > 0 ? 1 : -1,
+          })
+          .limit(Math.abs(limit));
+        const bookings = await bookingCursor.toArray();
+        return limit > 0 ? bookings : bookings.reverse();
+      } catch (err) {
+        throw new ApolloError(
+          `Unexpected error when querying user's bookings: ${err}`
+        );
       }
-      const bookingCursor = db.bookings
-        .find({
-          tenant: user._id,
-          ...(lastId
-            ? {
-                _id: {
-                  ...(limit > 0
-                    ? { $gt: new ObjectId(lastId) }
-                    : { $lt: new ObjectId(lastId) }),
-                },
-              }
-            : {}),
-        })
-        .sort({
-          _id: limit > 0 ? 1 : -1,
-        })
-        .limit(Math.abs(limit));
-      const bookings = await bookingCursor.toArray();
-      return limit > 0 ? bookings : bookings.reverse();
     },
     listings: async (
       user: User,
       { lastId, limit }: ListingBookingsArgs,
       { db }: { db: Database }
     ): Promise<Listing[]> => {
-      const listingCursor = db.listings
-        .find({
-          host: user._id,
-          ...(lastId
-            ? {
-                _id: {
-                  ...(limit > 0
-                    ? { $gt: new ObjectId(lastId) }
-                    : { $lt: new ObjectId(lastId) }),
-                },
-              }
-            : {}),
-        })
-        // when limit > 0 (fetch next) we want to sort ascendingly by _id
-        // when limit < 0 (fetch previous) we want to sort descendinly by _id,
-        // so we grab ${limit} highest elements just before lastId instead of the first ${limit} elements
-        .sort({
-          _id: limit > 0 ? 1 : -1,
-        })
-        .limit(Math.abs(limit));
-      const listings = await listingCursor.toArray();
-      // for limit > 0, the elements are reversely ordered because of the descending sort,
-      //  => we need to reverse them one more time here so they are returned to client in ascending order
-      return limit > 0 ? listings : listings.reverse();
+      try {
+        const listingCursor = db.listings
+          .find({
+            host: user._id,
+            ...(lastId
+              ? {
+                  _id: {
+                    ...(limit > 0
+                      ? { $gt: new ObjectId(lastId) }
+                      : { $lt: new ObjectId(lastId) }),
+                  },
+                }
+              : {}),
+          })
+          // when limit > 0 (fetch next) we want to sort ascendingly by _id
+          // when limit < 0 (fetch previous) we want to sort descendinly by _id,
+          // so we grab ${limit} highest elements just before lastId instead of the first ${limit} elements
+          .sort({
+            _id: limit > 0 ? 1 : -1,
+          })
+          .limit(Math.abs(limit));
+        const listings = await listingCursor.toArray();
+        // for limit < 0, the elements are reversely ordered because of the descending sort,
+        //  => we need to reverse them one more time here so they are returned to client in ascending order
+        return limit > 0 ? listings : listings.reverse();
+      } catch (err) {
+        throw new ApolloError(
+          `Unexpected error when querying user's listings: ${err}`
+        );
+      }
     },
   },
 };

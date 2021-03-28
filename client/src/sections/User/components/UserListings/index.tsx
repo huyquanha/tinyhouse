@@ -1,5 +1,5 @@
 import { List, Typography, Button, Row, Col } from "antd";
-import { BookingListingParams } from "../../types";
+import { BookingListingParams } from "../../../../lib/types";
 import { ListingCard } from "../../../../lib/components";
 import { User_user_User_listings as ListingData } from "../../../../lib/graphql/queries/User/__generated__/User";
 

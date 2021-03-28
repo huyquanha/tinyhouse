@@ -153,15 +153,15 @@ const App = () => {
           <AppHeader viewer={viewer} setViewer={setViewer} />
         </Affix>
         <Switch>
-          <Route exact path="/">
-            <Home />
-          </Route>
+          <Route exact path="/" component={Home} />
           <Route exact path="/host">
             <Host />
           </Route>
-          <Route exact path="/listing/:id">
-            <Listing />
-          </Route>
+          <Route
+            exact
+            path="/listing/:id"
+            render={(props) => <Listing {...props} />}
+          />
           {/** :location? means location parameter is optional */}
           <Route exact path="/listings/:location?">
             <Listings />

@@ -1,58 +1,64 @@
-import { List, Typography, Button, Row, Col } from "antd";
-import { ListingCard } from "../../../../lib/components";
-import { User_user_User_bookings as BookingData } from "../../../../lib/graphql/queries/User/__generated__/User";
+import { Avatar, Divider, List, Typography, Row, Col, Button } from "antd";
+import { Link } from "react-router-dom";
+import { Listing_listing_Listing_bookings as BookingData } from "../../../../lib/graphql/queries/Listing/__generated__/Listing";
 import { BookingListingParams } from "../../../../lib/types";
 
 interface Props {
-  userBookings: BookingData[];
+  listingBookings: BookingData[];
   bookingsParams: BookingListingParams;
   setBookingsParams: (params: BookingListingParams) => void;
   limit: number;
 }
 
-const { Paragraph, Title, Text } = Typography;
+const { Title, Text } = Typography;
 
-export const UserBookings = ({
-  userBookings,
+export const ListingBookings = ({
+  listingBookings,
   bookingsParams,
   setBookingsParams,
   limit,
 }: Props) => {
   const lastFetchIsNext = bookingsParams.fetchNext;
   const displayBookings =
-    userBookings.length <= limit
-      ? userBookings
+    listingBookings.length <= limit
+      ? listingBookings
       : lastFetchIsNext
-      ? userBookings.slice(0, userBookings.length - 1)
-      : userBookings.slice(1);
-  const userBookingsList = (
+      ? listingBookings.slice(0, listingBookings.length - 1)
+      : listingBookings.slice(1);
+  const listingBookingsList = (
     <List
       grid={{
         gutter: 8,
         xs: 1,
         sm: 2,
-        lg: 4,
+        lg: 3,
       }}
       dataSource={displayBookings}
-      locale={{ emptyText: "User doesn't have any bookings yet!" }}
+      locale={{ emptyText: "No bookings have been made yet!" }}
       pagination={false}
-      renderItem={(userBooking) => {
+      renderItem={(listingBooking) => {
         const bookingHistory = (
-          <div className="user-bookings__booking-history">
+          <div className="listing-bookings__history">
             <div>
               Check in:{" "}
-              <Text strong>{userBooking.checkIn.toLocaleDateString()}</Text>
+              <Text strong>{listingBooking.checkIn.toLocaleDateString()}</Text>
             </div>
             <div>
               Check out:{" "}
-              <Text strong>{userBooking.checkOut.toLocaleDateString()}</Text>
+              <Text strong>{listingBooking.checkOut.toLocaleDateString()}</Text>
             </div>
           </div>
         );
         return (
-          <List.Item>
+          <List.Item className="listing-bookings__item">
             {bookingHistory}
-            <ListingCard listing={userBooking.listing} />
+            <Link to={`/user/${listingBooking.tenant.id}`}>
+              <Avatar
+                src={listingBooking.tenant.avatar}
+                size={64}
+                shape="square"
+              />
+            </Link>
           </List.Item>
         );
       }}
@@ -60,12 +66,13 @@ export const UserBookings = ({
   );
 
   return (
-    <div className="user-bookings">
+    <div className="listing-bookings">
+      <Divider />
       <Row gutter={12} justify="start">
         <Col span={4}>
-          <Title level={4} className="user-bookings__title">
-            Bookings
-          </Title>
+          <div className="listing-bookings__section">
+            <Title level={4}>Bookings</Title>
+          </div>
         </Col>
         <Col span={4} offset={11}>
           <Button
@@ -73,7 +80,7 @@ export const UserBookings = ({
             size="middle"
             disabled={
               !bookingsParams.lastId ||
-              (!lastFetchIsNext && userBookings.length <= limit)
+              (!lastFetchIsNext && listingBookings.length <= limit)
             }
             block
             onClick={() =>
@@ -90,7 +97,7 @@ export const UserBookings = ({
           <Button
             type="dashed"
             size="middle"
-            disabled={lastFetchIsNext && userBookings.length <= limit}
+            disabled={lastFetchIsNext && listingBookings.length <= limit}
             block
             onClick={() =>
               setBookingsParams({
@@ -103,11 +110,7 @@ export const UserBookings = ({
           </Button>
         </Col>
       </Row>
-      <Paragraph className="user-bookings__description">
-        This section highlights the bookings you've made, and the
-        check-in/check-out dates associated with said bookings.
-      </Paragraph>
-      {userBookingsList}
+      {listingBookingsList}
     </div>
   );
 };

@@ -20,18 +20,20 @@ export const connectDatabase = async (): Promise<Database> => {
     userIdentities,
     emailVerifications,
     bookings,
+    listings,
   ] = await Promise.all([
     getUsersCollection(db),
     getUserIdentitiesCollection(db),
     getEmailVerificationsCollection(db),
     getBookingsCollection(db),
+    getListingsCollection(db),
   ]);
 
   return {
     users,
     userIdentities,
     emailVerifications,
-    listings: getListingsCollection(db),
+    listings,
     bookings,
   };
 };

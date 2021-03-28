@@ -11,7 +11,7 @@ import { UserProfile } from "./components";
 import { Viewer } from "../../lib/types";
 import { useState } from "react";
 import { UserListings, UserBookings } from "./components";
-import { BookingListingParams } from "./types";
+import { BookingListingParams } from "../../lib/types";
 
 interface MatchParams {
   id: string;
